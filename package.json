@@ -19,7 +19,8 @@
     "onCommand:gdbScript.stopIceman",
     "onCommand:gdbScript.restartIceman",
     "onCommand:gdbScript.regenerateLaunchJson",
-    "onCommand:gdbScript.openDisassemblyViewRight"
+    "onCommand:gdbScript.openDisassemblyViewRight",
+    "onCommand:gdbScript.showMemoryInspector"
   ],
   "main": "./extension.js",
   "extensionDependencies": [
@@ -190,9 +191,21 @@
         "command": "gdbScript.openDisassemblyViewRight",
         "title": "RDS: Show Disassembly View",
         "icon": "$(open-preview)"
+      },
+      {
+        "command": "gdbScript.showMemoryInspector",
+        "title": "RDS: Show Memory Inspector",
+        "icon": "$(database)"
       }
     ],
     "menus": {
+      "debug/toolBar": [
+        {
+          "command": "gdbScript.showMemoryInspector",
+          "when": "inDebugMode",
+          "group": "navigation@10"
+        }
+      ],
       "editor/context": [
         {
           "command": "gdbScript.openDisassemblyViewRight",

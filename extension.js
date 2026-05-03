@@ -720,6 +720,10 @@ async function activate(context) {
         await vscode.commands.executeCommand("workbench.action.moveEditorToNextGroup");
     });
 
+    const showMemoryInspectorDisposable = vscode.commands.registerCommand("gdbScript.showMemoryInspector", async () => {
+        await vscode.commands.executeCommand("memory-inspector.show");
+    });
+
     const disposable = vscode.commands.registerCommand("gdbScript.runCurrent", async () => {
         const editor = vscode.window.activeTextEditor;
 
@@ -808,6 +812,7 @@ async function activate(context) {
         restartIcemanDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
+        showMemoryInspectorDisposable,
         startDisposable,
         terminateDisposable,
         closeTerminalDisposable,
