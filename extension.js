@@ -402,7 +402,7 @@ async function updateIcemanStatusBar() {
     if (!folder) {
         icemanStatusItem.text = "$(debug-disconnect) ICEman is inactive";
         icemanStatusItem.tooltip = "Open a workspace folder to check Andes ICEman status.";
-        icemanTargetItem.text = "Target: -";
+        icemanTargetItem.hide();
         icemanTargetItem.tooltip = "No workspace folder is active.";
         return;
     }
@@ -419,8 +419,13 @@ async function updateIcemanStatusBar() {
         : `Andes ICEman target is not available at ${targetText}.`;
     icemanStatusItem.command = isAvailable ? "gdbScript.stopIceman" : "gdbScript.startIceman";
 
-    icemanTargetItem.text = `Target: ${targetText}`;
-    icemanTargetItem.tooltip = "Configured GDB target endpoint.";
+    if (isAvailable) {
+        icemanTargetItem.text = targetText;
+        icemanTargetItem.tooltip = "Configured GDB target endpoint.";
+        icemanTargetItem.show();
+    } else {
+        icemanTargetItem.hide();
+    }
 }
 
 async function startIceman(folder, editor, showAlreadyRunningMessage = false) {
@@ -634,7 +639,6 @@ async function activate(context) {
     icemanStatusItem.name = "Andes ICEman Status";
     icemanTargetItem.name = "Andes ICEman Target";
     icemanStatusItem.show();
-    icemanTargetItem.show();
     updateIcemanStatusBar();
     statusTimer = setInterval(updateIcemanStatusBar, 2000);
 
