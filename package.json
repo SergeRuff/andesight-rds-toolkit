@@ -158,27 +158,27 @@
     "commands": [
       {
         "command": "gdbScript.runCurrent",
-        "title": "AndeSight RDS Toolkit for VSCode: Run GDB Script (F5)",
+        "title": "RDS: Run GDB Script (F5)",
         "icon": "$(debug-start)"
       },
       {
         "command": "gdbScript.startIceman",
-        "title": "AndeSight RDS Toolkit for VSCode: Start Andes ICEman",
+        "title": "RDS: Start Andes ICEman",
         "icon": "$(debug-start)"
       },
       {
         "command": "gdbScript.stopIceman",
-        "title": "AndeSight RDS Toolkit for VSCode: Stop Andes ICEman",
+        "title": "RDS: Stop Andes ICEman",
         "icon": "$(debug-stop)"
       },
       {
         "command": "gdbScript.restartIceman",
-        "title": "AndeSight RDS Toolkit for VSCode: Restart Andes ICEman",
+        "title": "RDS: Restart Andes ICEman",
         "icon": "$(debug-restart)"
       },
       {
         "command": "gdbScript.regenerateLaunchJson",
-        "title": "AndeSight RDS Toolkit for VSCode: Regenerate launch.json via default template",
+        "title": "RDS: Regenerate launch.json via default template",
         "icon": "$(refresh)"
       },
       {
