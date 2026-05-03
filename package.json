@@ -196,6 +196,11 @@
         "command": "gdbScript.showMemoryInspector",
         "title": "RDS: Show Memory Inspector",
         "icon": "$(database)"
+      },
+      {
+        "command": "gdbScript.showSelectedVariableInMemoryInspector",
+        "title": "Show Variable in Memory Inspector",
+        "category": "AndeSight RDS Toolkit for VSCode"
       }
     ],
     "menus": {
@@ -208,9 +213,9 @@
       ],
       "editor/context": [
         {
-          "command": "gdbScript.openDisassemblyViewRight",
-          "when": "inDebugMode",
-          "group": "debug"
+          "command": "gdbScript.showSelectedVariableInMemoryInspector",
+          "when": "inDebugMode && editorTextFocus",
+          "group": "debug@20"
         }
       ],
       "editor/title": [
