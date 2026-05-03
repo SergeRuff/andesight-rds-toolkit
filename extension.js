@@ -8,6 +8,9 @@ let icemanTerminal;
 let tailTimer;
 let lastLogPath;
 let extensionPath;
+let icemanStatusItem;
+let icemanTargetItem;
+let statusTimer;
 let lastScriptPathByWorkspace = new Map();
 let tailState = {
     filePath: undefined,
@@ -37,6 +40,10 @@ function getWorkspaceFolderForCommand(editor) {
 
 function getWorkspaceKey(folder) {
     return folder ? folder.uri.toString() : "";
+}
+
+function getActiveWorkspaceFolder() {
+    return getWorkspaceFolderForCommand(vscode.window.activeTextEditor);
 }
 
 function delay(ms) {
@@ -375,6 +382,55 @@ async function waitForTcpPortOpen(host, port, timeoutMs, intervalMs = 200) {
     return false;
 }
 
+async function isTargetEndpointAvailable(folder) {
+    const targetEndpoint = getTargetEndpoint(folder);
+
+    if (!Number.isInteger(targetEndpoint.port) || targetEndpoint.port <= 0 || targetEndpoint.port > 65535) {
+        return false;
+    }
+
+    return waitForTcpPortOpen(targetEndpoint.host, targetEndpoint.port, 500, 0);
+}
+
+async function updateIcemanStatusBar() {
+    if (!icemanStatusItem || !icemanTargetItem) {
+        return;
+    }
+
+    const folder = getActiveWorkspaceFolder();
+
+    if (!folder) {
+        icemanStatusItem.text = "$(debug-disconnect) ICEman is inactive";
+        icemanStatusItem.color = new vscode.ThemeColor("errorForeground");
+        icemanStatusItem.tooltip = "Open a workspace folder to check Andes ICEman status.";
+        icemanTargetItem.hide();
+        icemanTargetItem.tooltip = "No workspace folder is active.";
+        return;
+    }
+
+    const targetEndpoint = getTargetEndpoint(folder);
+    const targetText = `${targetEndpoint.host}:${targetEndpoint.port}`;
+    const isAvailable = await isTargetEndpointAvailable(folder);
+
+    icemanStatusItem.text = isAvailable
+        ? "$(remote-explorer-view-icon) ICEman is working:"
+        : "$(debug-disconnect) ICEman is inactive";
+    icemanStatusItem.color = new vscode.ThemeColor(isAvailable ? "testing.iconPassed" : "errorForeground");
+    icemanStatusItem.tooltip = isAvailable
+        ? `Andes ICEman target is available at ${targetText}.`
+        : `Andes ICEman target is not available at ${targetText}.`;
+    icemanStatusItem.command = isAvailable ? "gdbScript.stopIceman" : "gdbScript.startIceman";
+
+    if (isAvailable) {
+        icemanTargetItem.text = targetText;
+        icemanTargetItem.color = undefined;
+        icemanTargetItem.tooltip = "Configured GDB target endpoint.";
+        icemanTargetItem.show();
+    } else {
+        icemanTargetItem.hide();
+    }
+}
+
 async function startIceman(folder, editor, showAlreadyRunningMessage = false) {
     const targetEndpoint = getTargetEndpoint(folder);
 
@@ -581,6 +637,14 @@ function createDebugConfigurationProvider() {
 async function activate(context) {
     extensionPath = context.extensionPath;
 
+    icemanStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    icemanTargetItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+    icemanStatusItem.name = "Andes ICEman Status";
+    icemanTargetItem.name = "Andes ICEman Target";
+    icemanStatusItem.show();
+    updateIcemanStatusBar();
+    statusTimer = setInterval(updateIcemanStatusBar, 2000);
+
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {
             await ensureLaunchJson(context, folder);
@@ -597,10 +661,32 @@ async function activate(context) {
         }
 
         await startIceman(folder, editor, true);
+        await updateIcemanStatusBar();
     });
 
     const stopIcemanDisposable = vscode.commands.registerCommand("gdbScript.stopIceman", () => {
         stopIceman(true);
+        updateIcemanStatusBar();
+    });
+
+    const restartIcemanDisposable = vscode.commands.registerCommand("gdbScript.restartIceman", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+
+        if (!folder) {
+            vscode.window.showErrorMessage("Open a workspace folder before restarting Andes ICEman.");
+            return;
+        }
+
+        stopIceman(false);
+        const icemanConfig = getIcemanConfiguration(folder, editor);
+
+        if (icemanConfig.startupDelayMs > 0) {
+            await delay(icemanConfig.startupDelayMs);
+        }
+
+        await startIceman(folder, editor, true);
+        await updateIcemanStatusBar();
     });
 
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
@@ -692,6 +778,17 @@ async function activate(context) {
     const closeTerminalDisposable = vscode.window.onDidCloseTerminal((terminal) => {
         if (terminal === icemanTerminal) {
             icemanTerminal = undefined;
+            updateIcemanStatusBar();
+        }
+    });
+
+    const activeEditorDisposable = vscode.window.onDidChangeActiveTextEditor(() => {
+        updateIcemanStatusBar();
+    });
+
+    const configurationDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("gdbScriptRunner.target")) {
+            updateIcemanStatusBar();
         }
     });
 
@@ -708,15 +805,25 @@ async function activate(context) {
         disposable,
         startIcemanDisposable,
         stopIcemanDisposable,
+        restartIcemanDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         startDisposable,
         terminateDisposable,
         closeTerminalDisposable,
+        activeEditorDisposable,
+        configurationDisposable,
         gdbTargetDebugConfigurationProviderDisposable,
         gdbDebugConfigurationProviderDisposable,
+        icemanStatusItem,
+        icemanTargetItem,
         {
             dispose: () => {
+                if (statusTimer) {
+                    clearInterval(statusTimer);
+                    statusTimer = undefined;
+                }
+
                 stopTail();
                 stopIceman(false);
             }
