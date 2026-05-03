@@ -209,6 +209,11 @@
           "command": "gdbScript.showMemoryInspector",
           "when": "inDebugMode",
           "group": "navigation@10"
+        },
+        {
+          "command": "gdbScript.openDisassemblyViewRight",
+          "when": "inDebugMode",
+          "group": "navigation@10"
         }
       ],
       "editor/context": [
@@ -219,11 +224,6 @@
         }
       ],
       "editor/title": [
-        {
-          "command": "gdbScript.openDisassemblyViewRight",
-          "when": "inDebugMode",
-          "group": "navigation"
-        },
         {
           "command": "gdbScript.runCurrent",
           "when": "resourceExtname == .gdb",
