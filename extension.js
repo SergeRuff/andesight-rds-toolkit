@@ -666,6 +666,26 @@ async function activate(context) {
         updateIcemanStatusBar();
     });
 
+    const restartIcemanDisposable = vscode.commands.registerCommand("gdbScript.restartIceman", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+
+        if (!folder) {
+            vscode.window.showErrorMessage("Open a workspace folder before restarting Andes ICEman.");
+            return;
+        }
+
+        stopIceman(false);
+        const icemanConfig = getIcemanConfiguration(folder, editor);
+
+        if (icemanConfig.startupDelayMs > 0) {
+            await delay(icemanConfig.startupDelayMs);
+        }
+
+        await startIceman(folder, editor, true);
+        await updateIcemanStatusBar();
+    });
+
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
@@ -782,6 +802,7 @@ async function activate(context) {
         disposable,
         startIcemanDisposable,
         stopIcemanDisposable,
+        restartIcemanDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         startDisposable,

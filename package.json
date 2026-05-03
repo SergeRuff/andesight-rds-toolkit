@@ -12,6 +12,7 @@
     "onCommand:gdbScript.runCurrent",
     "onCommand:gdbScript.startIceman",
     "onCommand:gdbScript.stopIceman",
+    "onCommand:gdbScript.restartIceman",
     "onCommand:gdbScript.regenerateLaunchJson",
     "onCommand:gdbScript.openDisassemblyViewRight"
   ],
@@ -169,6 +170,11 @@
         "command": "gdbScript.stopIceman",
         "title": "AndeSight RDS Toolkit for VSCode: Stop Andes ICEman",
         "icon": "$(debug-stop)"
+      },
+      {
+        "command": "gdbScript.restartIceman",
+        "title": "AndeSight RDS Toolkit for VSCode: Restart Andes ICEman",
+        "icon": "$(debug-restart)"
       },
       {
         "command": "gdbScript.regenerateLaunchJson",
