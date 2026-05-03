@@ -401,6 +401,7 @@ async function updateIcemanStatusBar() {
 
     if (!folder) {
         icemanStatusItem.text = "$(debug-disconnect) ICEman is inactive";
+        icemanStatusItem.color = new vscode.ThemeColor("errorForeground");
         icemanStatusItem.tooltip = "Open a workspace folder to check Andes ICEman status.";
         icemanTargetItem.hide();
         icemanTargetItem.tooltip = "No workspace folder is active.";
@@ -414,6 +415,7 @@ async function updateIcemanStatusBar() {
     icemanStatusItem.text = isAvailable
         ? "$(remote-explorer-view-icon) ICEman is working:"
         : "$(debug-disconnect) ICEman is inactive";
+    icemanStatusItem.color = new vscode.ThemeColor(isAvailable ? "testing.iconPassed" : "errorForeground");
     icemanStatusItem.tooltip = isAvailable
         ? `Andes ICEman target is available at ${targetText}.`
         : `Andes ICEman target is not available at ${targetText}.`;
@@ -421,6 +423,7 @@ async function updateIcemanStatusBar() {
 
     if (isAvailable) {
         icemanTargetItem.text = targetText;
+        icemanTargetItem.color = undefined;
         icemanTargetItem.tooltip = "Configured GDB target endpoint.";
         icemanTargetItem.show();
     } else {
