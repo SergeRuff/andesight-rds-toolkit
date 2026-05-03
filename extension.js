@@ -400,7 +400,7 @@ async function updateIcemanStatusBar() {
     const folder = getActiveWorkspaceFolder();
 
     if (!folder) {
-        icemanStatusItem.text = "$(debug-disconnect) ICEman: не работает";
+        icemanStatusItem.text = "$(debug-disconnect) ICEman is inactive";
         icemanStatusItem.tooltip = "Open a workspace folder to check Andes ICEman status.";
         icemanTargetItem.text = "Target: -";
         icemanTargetItem.tooltip = "No workspace folder is active.";
@@ -412,8 +412,8 @@ async function updateIcemanStatusBar() {
     const isAvailable = await isTargetEndpointAvailable(folder);
 
     icemanStatusItem.text = isAvailable
-        ? "$(remote-explorer-view-icon) ICEman: работает"
-        : "$(debug-disconnect) ICEman: не работает";
+        ? "$(remote-explorer-view-icon) ICEman is working:"
+        : "$(debug-disconnect) ICEman is inactive";
     icemanStatusItem.tooltip = isAvailable
         ? `Andes ICEman target is available at ${targetText}.`
         : `Andes ICEman target is not available at ${targetText}.`;
