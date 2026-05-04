@@ -17,6 +17,7 @@ let tailState = {
     offset: 0,
     partial: ""
 };
+let icemanCooldown = 300;
 
 function getOutputChannel() {
     if (!outputChannel) {
@@ -680,12 +681,9 @@ async function activate(context) {
 
         stopIceman(false);
         const icemanConfig = getIcemanConfiguration(folder, editor);
-
-        if (icemanConfig.startupDelayMs > 0) {
-            await delay(icemanConfig.startupDelayMs);
-        }
-
-        await startIceman(folder, editor, true);
+        
+        await delay(icemanCooldown);
+        await startIceman(folder, editor, false);
         await updateIcemanStatusBar();
     });
 
