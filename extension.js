@@ -419,7 +419,7 @@ async function updateIcemanStatusBar() {
     icemanStatusItem.tooltip = isAvailable
         ? `Andes ICEman target is available at ${targetText}.`
         : `Andes ICEman target is not available at ${targetText}.`;
-    icemanStatusItem.command = isAvailable ? "gdbScript.stopIceman" : "gdbScript.startIceman";
+    icemanStatusItem.command = isAvailable ? "gdbScript.stopIceman" : "gdbScript.restartIceman";
 
     if (isAvailable) {
         icemanTargetItem.text = targetText;
