@@ -21,7 +21,8 @@
     "onCommand:gdbScript.restartIceman",
     "onCommand:gdbScript.regenerateLaunchJson",
     "onCommand:gdbScript.openDisassemblyViewRight",
-    "onCommand:gdbScript.showMemoryInspector"
+    "onCommand:gdbScript.showMemoryInspector",
+    "onCommand:gdbScript.showSelectedPointerTargetInMemoryInspector"
   ],
   "main": "./extension.js",
   "extensionDependencies": [
@@ -202,6 +203,11 @@
         "command": "gdbScript.showSelectedVariableInMemoryInspector",
         "title": "Show Variable in Memory Inspector",
         "category": "AndeSight RDS Toolkit for VSCode"
+      },
+      {
+        "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
+        "title": "Show Pointer Target in Memory Inspector",
+        "category": "AndeSight RDS Toolkit for VSCode"
       }
     ],
     "menus": {
@@ -222,6 +228,11 @@
           "command": "gdbScript.showSelectedVariableInMemoryInspector",
           "when": "inDebugMode && editorTextFocus",
           "group": "debug@20"
+        },
+        {
+          "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
+          "when": "inDebugMode && editorTextFocus",
+          "group": "debug@21"
         }
       ],
       "editor/title": [
