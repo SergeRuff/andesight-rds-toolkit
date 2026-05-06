@@ -233,6 +233,9 @@ function getIcemanConfiguration(folder, editor) {
         args: expandConfigValue(config.get("args", []), editor, folder),
         cwd: expandConfigValue(config.get("cwd", "${workspaceFolder}"), editor, folder),
         andesRoot: expandConfigValue(config.get("andesRoot", ""), editor, folder),
+        burnerPort: config.get("burnerPort", 9900),
+        telnetPort: config.get("telnetPort", 9901),
+        gdbPortRange: expandConfigValue(config.get("gdbPortRange", "9902:49151"), editor, folder),
         useAndesEnvironment: config.get("useAndesEnvironment", false),
         startupDelayMs: config.get("startupDelayMs", 10000)
     };
@@ -322,6 +325,15 @@ function normalizeIcemanArgs(args) {
     }
 
     return [];
+}
+
+function buildIcemanArgs(icemanConfig) {
+    return [
+        `--bport=${icemanConfig.burnerPort}`,
+        `--tport=${icemanConfig.telnetPort}`,
+        `--port=${icemanConfig.gdbPortRange}`,
+        ...normalizeIcemanArgs(icemanConfig.args)
+    ];
 }
 
 function getTargetEndpoint(folder) {
@@ -470,7 +482,7 @@ async function startIceman(folder, editor, showAlreadyRunningMessage = false) {
         return false;
     }
 
-    const args = normalizeIcemanArgs(icemanConfig.args);
+    const args = buildIcemanArgs(icemanConfig);
     const cwd = icemanConfig.cwd || (folder && folder.uri.fsPath);
     const andesPaths = getAndesPaths(icemanConfig);
     const env = buildIcemanEnvironment(icemanConfig, andesPaths);

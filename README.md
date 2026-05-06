@@ -12,9 +12,17 @@ Example workspace settings:
 {
   "andesIceman.enabled": true,
   "andesIceman.executable": "C:\\Andestech\\AndeSight_RDS_v511\\ice\\ICEman.exe",
-  "andesIceman.args": [],
   "andesIceman.cwd": "C:\\Andestech\\AndeSight_RDS_v511\\ice",
   "andesIceman.andesRoot": "C:\\Andestech\\AndeSight_RDS_v511",
+  "andesIceman.burnerPort": 9900,
+  "andesIceman.telnetPort": 9901,
+  "andesIceman.gdbPortRange": "9902:49151",
+  "andesIceman.args": [
+    "-Z",
+    "v5",
+    "-I",
+    "gwusb_ftdi_single.cfg"
+  ],
   "andesIceman.useAndesEnvironment": true,
   "andesIceman.startupDelayMs": 10000
 }

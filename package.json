@@ -117,12 +117,31 @@
             "description": "Working directory used to start Andes ICEman.",
             "order": 4
           },
+          "andesIceman.burnerPort": {
+            "type": "number",
+            "default": 9900,
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "Burner port passed to Andes ICEman as --bport.",
+            "order": 5
+          },
+          "andesIceman.telnetPort": {
+            "type": "number",
+            "default": 9901,
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "Telnet port passed to Andes ICEman as --tport.",
+            "order": 6
+          },
+          "andesIceman.gdbPortRange": {
+            "type": "string",
+            "default": "9902:49151",
+            "description": "GDB port range passed to Andes ICEman as --port.",
+            "order": 7
+          },
           "andesIceman.args": {
             "type": "array",
             "default": [
-              "--bport=9900",
-              "--tport=9901",
-              "--port=9902:49151",
               "-Z",
               "v5",
               "--device-usb-combo",
@@ -133,21 +152,21 @@
             "items": {
               "type": "string"
             },
-            "description": "Arguments passed to Andes ICEman.",
-            "order": 5
+            "description": "Additional arguments passed to Andes ICEman after the configured port arguments.",
+            "order": 8
           },
           "andesIceman.useAndesEnvironment": {
             "type": "boolean",
             "default": true,
             "description": "Start Andes ICEman in a VS Code terminal using the Cygwin bash environment from the Andes IDE launcher.",
-            "order": 6
+            "order": 9
           },
           "andesIceman.startupDelayMs": {
             "type": "number",
             "default": 3000,
             "minimum": 1000,
             "description": "Maximum time to wait for the Andes ICEman GDB target port to become available before starting GDB.",
-            "order": 7
+            "order": 10
           }
         }
       }
