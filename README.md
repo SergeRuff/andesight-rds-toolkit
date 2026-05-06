@@ -17,9 +17,8 @@ Example workspace settings:
   "andesIceman.burnerPort": 9900,
   "andesIceman.telnetPort": 9901,
   "andesIceman.gdbPortRange": "9902:49151",
+  "andesIceman.targetType": "v5",
   "andesIceman.args": [
-    "-Z",
-    "v5",
     "-I",
     "gwusb_ftdi_single.cfg"
   ],

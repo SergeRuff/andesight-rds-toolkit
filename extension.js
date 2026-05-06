@@ -236,6 +236,7 @@ function getIcemanConfiguration(folder, editor) {
         burnerPort: config.get("burnerPort", 9900),
         telnetPort: config.get("telnetPort", 9901),
         gdbPortRange: expandConfigValue(config.get("gdbPortRange", "9902:49151"), editor, folder),
+        targetType: config.get("targetType", "v5"),
         useAndesEnvironment: config.get("useAndesEnvironment", false),
         startupDelayMs: config.get("startupDelayMs", 10000)
     };
@@ -332,6 +333,8 @@ function buildIcemanArgs(icemanConfig) {
         `--bport=${icemanConfig.burnerPort}`,
         `--tport=${icemanConfig.telnetPort}`,
         `--port=${icemanConfig.gdbPortRange}`,
+        "-Z",
+        icemanConfig.targetType,
         ...normalizeIcemanArgs(icemanConfig.args)
     ];
 }

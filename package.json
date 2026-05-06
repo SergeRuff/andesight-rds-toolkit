@@ -139,11 +139,21 @@
             "description": "GDB port range passed to Andes ICEman as --port.",
             "order": 7
           },
+          "andesIceman.targetType": {
+            "type": "string",
+            "default": "v5",
+            "enum": [
+              "v2",
+              "v3",
+              "v3m",
+              "v5"
+            ],
+            "description": "Target type passed to Andes ICEman as -Z.",
+            "order": 8
+          },
           "andesIceman.args": {
             "type": "array",
             "default": [
-              "-Z",
-              "v5",
               "--device-usb-combo",
               "002:008:006",
               "-I",
@@ -153,20 +163,20 @@
               "type": "string"
             },
             "description": "Additional arguments passed to Andes ICEman after the configured port arguments.",
-            "order": 8
+            "order": 9
           },
           "andesIceman.useAndesEnvironment": {
             "type": "boolean",
             "default": true,
             "description": "Start Andes ICEman in a VS Code terminal using the Cygwin bash environment from the Andes IDE launcher.",
-            "order": 9
+            "order": 10
           },
           "andesIceman.startupDelayMs": {
             "type": "number",
             "default": 3000,
             "minimum": 1000,
             "description": "Maximum time to wait for the Andes ICEman GDB target port to become available before starting GDB.",
-            "order": 10
+            "order": 11
           }
         }
       }
