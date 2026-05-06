@@ -720,6 +720,10 @@ async function activate(context) {
         await vscode.commands.executeCommand("workbench.action.moveEditorToNextGroup");
     });
 
+    const showMemoryInspectorDisposable = vscode.commands.registerCommand("gdbScript.showMemoryInspector", async () => {
+        await vscode.commands.executeCommand("memory-inspector.show");
+    });
+
     const disposable = vscode.commands.registerCommand("gdbScript.runCurrent", async () => {
         const editor = vscode.window.activeTextEditor;
 
@@ -801,6 +805,90 @@ async function activate(context) {
         createDebugConfigurationProvider()
     );
 
+    const showSelectedVariableInMemoryInspectorDisposable =
+    vscode.commands.registerCommand("gdbScript.showSelectedVariableInMemoryInspector", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const session = vscode.debug.activeDebugSession;
+
+        if (!editor || !session) {
+            vscode.window.showWarningMessage("No active debug session.");
+            return;
+        }
+
+        const document = editor.document;
+        let expression = document.getText(editor.selection).trim();
+
+        if (!expression) {
+            const wordRange = document.getWordRangeAtPosition(
+                editor.selection.active,
+                /[A-Za-z_]\w*(?:->\w+|\.\w+|\[[^\]]+\])*/
+            );
+
+            if (wordRange) {
+                expression = document.getText(wordRange).trim();
+            }
+        }
+
+        if (!expression) {
+            vscode.window.showWarningMessage("No variable selected.");
+            return;
+        }
+
+        await vscode.commands.executeCommand("memory-inspector.show-variable", {
+            sessionId: session.id,
+            variable: {
+                name: expression,
+                value: ""
+            },
+            container: {
+                expression
+            }
+        });
+    });
+
+    const showSelectedPointerTargetInMemoryInspectorDisposable =
+    vscode.commands.registerCommand("gdbScript.showSelectedPointerTargetInMemoryInspector", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const session = vscode.debug.activeDebugSession;
+
+        if (!editor || !session) {
+            vscode.window.showWarningMessage("No active debug session.");
+            return;
+        }
+
+        const document = editor.document;
+        let expression = document.getText(editor.selection).trim();
+
+        if (!expression) {
+            const wordRange = document.getWordRangeAtPosition(
+                editor.selection.active,
+                /[A-Za-z_]\w*(?:->\w+|\.\w+|\[[^\]]+\])*/
+            );
+
+            if (wordRange) {
+                expression = document.getText(wordRange).trim();
+            }
+        }
+
+        if (!expression) {
+            vscode.window.showWarningMessage("No variable selected.");
+            return;
+        }
+
+        const pointerTargetExpression = `*(${expression})`;
+        await vscode.commands.executeCommand("memory-inspector.show-variable", {
+            sessionId: session.id,
+            variable: {
+                name: pointerTargetExpression,
+                value: ""
+            },
+            container: {
+                expression: pointerTargetExpression
+            }
+        });
+    });
+
+
     context.subscriptions.push(
         disposable,
         startIcemanDisposable,
@@ -808,6 +896,7 @@ async function activate(context) {
         restartIcemanDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
+        showMemoryInspectorDisposable,
         startDisposable,
         terminateDisposable,
         closeTerminalDisposable,
@@ -815,6 +904,8 @@ async function activate(context) {
         configurationDisposable,
         gdbTargetDebugConfigurationProviderDisposable,
         gdbDebugConfigurationProviderDisposable,
+        showSelectedVariableInMemoryInspectorDisposable,
+        showSelectedPointerTargetInMemoryInspectorDisposable,
         icemanStatusItem,
         icemanTargetItem,
         {

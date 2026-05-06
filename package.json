@@ -20,15 +20,18 @@
     "onCommand:gdbScript.stopIceman",
     "onCommand:gdbScript.restartIceman",
     "onCommand:gdbScript.regenerateLaunchJson",
-    "onCommand:gdbScript.openDisassemblyViewRight"
+    "onCommand:gdbScript.openDisassemblyViewRight",
+    "onCommand:gdbScript.showMemoryInspector",
+    "onCommand:gdbScript.showSelectedVariableInMemoryInspector",
+    "onCommand:gdbScript.showSelectedPointerTargetInMemoryInspector"
   ],
   "main": "./extension.js",
   "extensionDependencies": [
-    "eclipse-cdt.cdt-gdb-vscode"
+    "eclipse-cdt.cdt-gdb-vscode",
+    "eclipse-cdt.memory-inspector"
   ],
   "extensionPack": [
     "ms-vscode.cpptools-extension-pack",
-    "eclipse-cdt.memory-inspector",
     "eclipse-cdt.peripheral-inspector",
     "ms-vscode.vscode-serial-monitor",
     "sunshaoce.RISC-V",
@@ -191,22 +194,49 @@
         "command": "gdbScript.openDisassemblyViewRight",
         "title": "RDS: Show Disassembly View",
         "icon": "$(open-preview)"
+      },
+      {
+        "command": "gdbScript.showMemoryInspector",
+        "title": "RDS: Show Memory Inspector",
+        "icon": "$(database)"
+      },
+      {
+        "command": "gdbScript.showSelectedVariableInMemoryInspector",
+        "title": "Show Variable in Memory Inspector",
+        "category": "AndeSight RDS Toolkit for VSCode"
+      },
+      {
+        "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
+        "title": "Show Pointer Target in Memory Inspector",
+        "category": "AndeSight RDS Toolkit for VSCode"
       }
     ],
     "menus": {
-      "editor/context": [
+      "debug/toolBar": [
+        {
+          "command": "gdbScript.showMemoryInspector",
+          "when": "inDebugMode",
+          "group": "navigation@10"
+        },
         {
           "command": "gdbScript.openDisassemblyViewRight",
           "when": "inDebugMode",
-          "group": "debug"
+          "group": "navigation@10"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "gdbScript.showSelectedVariableInMemoryInspector",
+          "when": "inDebugMode && editorTextFocus",
+          "group": "debug@20"
+        },
+        {
+          "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
+          "when": "inDebugMode && editorTextFocus",
+          "group": "debug@21"
         }
       ],
       "editor/title": [
-        {
-          "command": "gdbScript.openDisassemblyViewRight",
-          "when": "inDebugMode",
-          "group": "navigation"
-        },
         {
           "command": "gdbScript.runCurrent",
           "when": "resourceExtname == .gdb",
