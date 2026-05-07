@@ -20,6 +20,7 @@
     "onCommand:gdbScript.stopIceman",
     "onCommand:gdbScript.restartIceman",
     "onCommand:gdbScript.selectIcemanTargetType",
+    "onCommand:gdbScript.setIcemanBurnerPort",
     "onCommand:gdbScript.regenerateLaunchJson",
     "onCommand:gdbScript.openDisassemblyViewRight",
     "onCommand:gdbScript.showMemoryInspector",
@@ -219,6 +220,11 @@
         "command": "gdbScript.selectIcemanTargetType",
         "title": "RDS: Select Andes ICEman Target Type",
         "icon": "$(list-selection)"
+      },
+      {
+        "command": "gdbScript.setIcemanBurnerPort",
+        "title": "RDS: Set Andes ICEman Burner Port",
+        "icon": "$(symbol-number)"
       },
       {
         "command": "gdbScript.regenerateLaunchJson",

@@ -743,6 +743,51 @@ async function activate(context) {
         vscode.window.showInformationMessage(`Andes ICEman target type set to ${selected.label}.`);
     });
 
+    const setIcemanBurnerPortDisposable = vscode.commands.registerCommand("gdbScript.setIcemanBurnerPort", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const currentBurnerPort = config.get("burnerPort", 9900);
+        const defaultBurnerPort = 9900;
+        const input = await vscode.window.showInputBox({
+            title: "Set Andes ICEman burner port",
+            prompt: `Current: ${currentBurnerPort}. Default: ${defaultBurnerPort}.`,
+            placeHolder: String(defaultBurnerPort),
+            value: String(currentBurnerPort),
+            validateInput: (value) => {
+                const trimmedValue = value.trim();
+
+                if (!trimmedValue) {
+                    return undefined;
+                }
+
+                const port = Number(trimmedValue);
+
+                if (!/^\d+$/.test(trimmedValue)) {
+                    return "Enter a numeric TCP port.";
+                }
+
+                if (!Number.isInteger(port) || port < 1 || port > 65535) {
+                    return "Port must be in range 1..65535.";
+                }
+
+                return undefined;
+            }
+        });
+
+        if (input === undefined) {
+            return;
+        }
+
+        const burnerPort = input.trim() ? Number(input.trim()) : defaultBurnerPort;
+        await config.update(
+            "burnerPort",
+            burnerPort,
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+        vscode.window.showInformationMessage(`Andes ICEman burner port set to ${burnerPort}.`);
+    });
+
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
@@ -949,6 +994,7 @@ async function activate(context) {
         stopIcemanDisposable,
         restartIcemanDisposable,
         selectIcemanTargetTypeDisposable,
+        setIcemanBurnerPortDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         showMemoryInspectorDisposable,
