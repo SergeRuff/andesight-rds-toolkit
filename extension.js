@@ -702,6 +702,47 @@ async function activate(context) {
         await updateIcemanStatusBar();
     });
 
+    const selectIcemanTargetTypeDisposable = vscode.commands.registerCommand("gdbScript.selectIcemanTargetType", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const currentTargetType = config.get("targetType", "v5");
+        const defaultTargetType = "v5";
+        const targetTypes = ["v2", "v3", "v3m", "v5"];
+        const selected = await vscode.window.showQuickPick(
+            targetTypes.map((targetType) => {
+                const descriptions = [];
+
+                if (targetType === currentTargetType) {
+                    descriptions.push("current");
+                }
+
+                if (targetType === defaultTargetType) {
+                    descriptions.push("default");
+                }
+
+                return {
+                    label: targetType,
+                    description: descriptions.join(", ") || undefined
+                };
+            }),
+            {
+                placeHolder: "Select Andes ICEman target type"
+            }
+        );
+
+        if (!selected) {
+            return;
+        }
+
+        await config.update(
+            "targetType",
+            selected.label,
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+        vscode.window.showInformationMessage(`Andes ICEman target type set to ${selected.label}.`);
+    });
+
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
@@ -907,6 +948,7 @@ async function activate(context) {
         startIcemanDisposable,
         stopIcemanDisposable,
         restartIcemanDisposable,
+        selectIcemanTargetTypeDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         showMemoryInspectorDisposable,

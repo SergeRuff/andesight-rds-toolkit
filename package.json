@@ -19,6 +19,7 @@
     "onCommand:gdbScript.startIceman",
     "onCommand:gdbScript.stopIceman",
     "onCommand:gdbScript.restartIceman",
+    "onCommand:gdbScript.selectIcemanTargetType",
     "onCommand:gdbScript.regenerateLaunchJson",
     "onCommand:gdbScript.openDisassemblyViewRight",
     "onCommand:gdbScript.showMemoryInspector",
@@ -213,6 +214,11 @@
         "command": "gdbScript.restartIceman",
         "title": "RDS: Restart Andes ICEman",
         "icon": "$(debug-restart)"
+      },
+      {
+        "command": "gdbScript.selectIcemanTargetType",
+        "title": "RDS: Select Andes ICEman Target Type",
+        "icon": "$(list-selection)"
       },
       {
         "command": "gdbScript.regenerateLaunchJson",
