@@ -512,15 +512,6 @@ async function updateIcemanStatusBar() {
 
     const folder = getActiveWorkspaceFolder();
 
-    if (!folder) {
-        icemanStatusItem.text = "$(debug-disconnect) ICEman is inactive";
-        icemanStatusItem.color = new vscode.ThemeColor("errorForeground");
-        icemanStatusItem.tooltip = "Open a workspace folder to check Andes ICEman status.";
-        icemanTargetItem.hide();
-        icemanTargetItem.tooltip = "No workspace folder is active.";
-        return;
-    }
-
     const targetEndpoint = getTargetEndpoint(folder);
     const targetText = `${targetEndpoint.host}:${targetEndpoint.port}`;
     const isAvailable = await isTargetEndpointAvailable(folder);
