@@ -528,10 +528,23 @@ async function updateIcemanStatusBar() {
     if (isAvailable) {
         icemanTargetItem.text = targetText;
         icemanTargetItem.color = undefined;
-        icemanTargetItem.tooltip = "Configured GDB target endpoint.";
+        icemanTargetItem.tooltip = `Configured GDB target endpoint: ${targetText}. Open Andes ICEman settings.`;
+        icemanTargetItem.command = {
+            command: "workbench.action.openSettings",
+            title: "Open Andes ICEman Settings",
+            arguments: ["andesIceman"]
+        };
         icemanTargetItem.show();
     } else {
-        icemanTargetItem.hide();
+        icemanTargetItem.text = "$(settings-gear) Config";
+        icemanTargetItem.color = new vscode.ThemeColor("disabledForeground");
+        icemanTargetItem.tooltip = `Andes ICEman target is not available at ${targetText}. Open Andes ICEman settings.`;
+        icemanTargetItem.command = {
+            command: "workbench.action.openSettings",
+            title: "Open Andes ICEman Settings",
+            arguments: ["andesIceman"]
+        };
+        icemanTargetItem.show();
     }
 }
 
