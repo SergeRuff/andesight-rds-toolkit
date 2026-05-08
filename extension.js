@@ -26,7 +26,7 @@ const ANDES_ICEMAN_DEFAULTS = {
     startupDelayMs: 3000
 };
 const GDB_SCRIPT_RUNNER_DEFAULTS = {
-    targetPort: "9902"
+    targetPort: 9902
 };
 
 function getOutputChannel() {
@@ -318,38 +318,6 @@ async function promptAndUpdateStringSetting(config, key, options, target) {
     return updatedValue;
 }
 
-async function promptAndUpdateNumericStringSetting(config, key, options, target) {
-    const currentValue = config.get(key, options.defaultValue);
-    const input = await vscode.window.showInputBox({
-        title: options.title,
-        prompt: `Current: ${currentValue}. Default: ${options.defaultValue}.`,
-        placeHolder: String(options.defaultValue),
-        value: String(currentValue),
-        validateInput: (value) => {
-            const trimmedValue = value.trim();
-
-            if (!trimmedValue) {
-                return undefined;
-            }
-
-            if (!validateTcpPort(trimmedValue)) {
-                return options.rangeErrorMessage;
-            }
-
-            return undefined;
-        }
-    });
-
-    if (input === undefined) {
-        return undefined;
-    }
-
-    const updatedValue = input.trim() || options.defaultValue;
-    await config.update(key, updatedValue, target);
-
-    return updatedValue;
-}
-
 function validateTcpPort(value) {
     const port = Number(value);
 
@@ -476,7 +444,7 @@ function getTargetEndpoint(folder) {
 
     return {
         host: config.get("host", "localhost"),
-        port: Number(config.get("port", "9902"))
+        port: Number(config.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort))
     };
 }
 
@@ -955,12 +923,15 @@ async function activate(context) {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
         const config = vscode.workspace.getConfiguration("gdbScriptRunner.target", folder && folder.uri);
-        const targetPort = await promptAndUpdateNumericStringSetting(
+        const targetPort = await promptAndUpdateNumericSetting(
             config,
             "port",
             {
                 defaultValue: GDB_SCRIPT_RUNNER_DEFAULTS.targetPort,
+                minimum: 1,
+                maximum: 65535,
                 title: "Set GDB target port",
+                integerErrorMessage: "Enter a numeric TCP port.",
                 rangeErrorMessage: "Port must be a numeric TCP port in range 1..65535."
             },
             folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global

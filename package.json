@@ -82,8 +82,10 @@
             "order": 4
           },
           "gdbScriptRunner.target.port": {
-            "type": "string",
-            "default": "9902",
+            "type": "number",
+            "default": 9902,
+            "minimum": 1,
+            "maximum": 65535,
             "description": "GDB target port used by the CDT GDB target adapter.",
             "order": 5
           },
