@@ -22,6 +22,7 @@
     "onCommand:gdbScript.selectIcemanTargetType",
     "onCommand:gdbScript.setIcemanBurnerPort",
     "onCommand:gdbScript.setIcemanTelnetPort",
+    "onCommand:gdbScript.setIcemanGdbPortRange",
     "onCommand:gdbScript.regenerateLaunchJson",
     "onCommand:gdbScript.openDisassemblyViewRight",
     "onCommand:gdbScript.showMemoryInspector",
@@ -230,6 +231,11 @@
       {
         "command": "gdbScript.setIcemanTelnetPort",
         "title": "RDS: Set Andes ICEman Telnet Port",
+        "icon": "$(symbol-number)"
+      },
+      {
+        "command": "gdbScript.setIcemanGdbPortRange",
+        "title": "RDS: Set Andes ICEman GDB Port Range",
         "icon": "$(symbol-number)"
       },
       {

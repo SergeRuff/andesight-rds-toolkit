@@ -287,6 +287,58 @@ async function promptAndUpdateNumericSetting(config, key, options, target) {
     return updatedValue;
 }
 
+async function promptAndUpdateStringSetting(config, key, options, target) {
+    const currentValue = config.get(key, options.defaultValue);
+    const input = await vscode.window.showInputBox({
+        title: options.title,
+        prompt: `Current: ${currentValue}. Default: ${options.defaultValue}.`,
+        placeHolder: String(options.defaultValue),
+        value: String(currentValue),
+        validateInput: (value) => {
+            const trimmedValue = value.trim();
+
+            if (!trimmedValue) {
+                return undefined;
+            }
+
+            return options.validate(trimmedValue);
+        }
+    });
+
+    if (input === undefined) {
+        return undefined;
+    }
+
+    const updatedValue = input.trim() || options.defaultValue;
+    await config.update(key, updatedValue, target);
+
+    return updatedValue;
+}
+
+function validateTcpPort(value) {
+    const port = Number(value);
+
+    return /^\d+$/.test(value) && Number.isInteger(port) && port >= 1 && port <= 65535;
+}
+
+function validateGdbPortRange(value) {
+    const parts = value.split(":");
+
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        return "Enter a GDB port range in format startPort:endPort.";
+    }
+
+    if (!validateTcpPort(parts[0]) || !validateTcpPort(parts[1])) {
+        return "Both ports must be numeric TCP ports in range 1..65535.";
+    }
+
+    if (Number(parts[0]) > Number(parts[1])) {
+        return "Start port must be less than or equal to end port.";
+    }
+
+    return undefined;
+}
+
 function trimTrailingSeparators(value) {
     return value.replace(/[\\/]+$/, "");
 }
@@ -838,6 +890,28 @@ async function activate(context) {
         vscode.window.showInformationMessage(`Andes ICEman telnet port set to ${telnetPort}.`);
     });
 
+    const setIcemanGdbPortRangeDisposable = vscode.commands.registerCommand("gdbScript.setIcemanGdbPortRange", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const gdbPortRange = await promptAndUpdateStringSetting(
+            config,
+            "gdbPortRange",
+            {
+                defaultValue: ANDES_ICEMAN_DEFAULTS.gdbPortRange,
+                title: "Set Andes ICEman GDB port range",
+                validate: validateGdbPortRange
+            },
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+
+        if (gdbPortRange === undefined) {
+            return;
+        }
+
+        vscode.window.showInformationMessage(`Andes ICEman GDB port range set to ${gdbPortRange}.`);
+    });
+
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
@@ -1046,6 +1120,7 @@ async function activate(context) {
         selectIcemanTargetTypeDisposable,
         setIcemanBurnerPortDisposable,
         setIcemanTelnetPortDisposable,
+        setIcemanGdbPortRangeDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         showMemoryInspectorDisposable,
