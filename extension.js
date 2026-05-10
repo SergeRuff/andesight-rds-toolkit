@@ -531,21 +531,19 @@ async function updateIcemanStatusBar() {
     if (isAvailable) {
         icemanTargetItem.text = targetText;
         icemanTargetItem.color = undefined;
-        icemanTargetItem.tooltip = `Configured GDB target endpoint: ${targetText}. Open Andes ICEman settings.`;
+        icemanTargetItem.tooltip = `Configured GDB target endpoint: ${targetText}.`;
         icemanTargetItem.command = {
-            command: "workbench.action.openSettings",
-            title: "Open Andes ICEman Settings",
-            arguments: ["andesIceman"]
+            command: "gdbScript.showIcemanConfigActions",
+            title: "Configure Andes ICEman"
         };
         icemanTargetItem.show();
     } else {
         icemanTargetItem.text = "$(settings-gear) Config";
         icemanTargetItem.color = new vscode.ThemeColor("disabledForeground");
-        icemanTargetItem.tooltip = `Andes ICEman target is not available at ${targetText}. Open Andes ICEman settings.`;
+        icemanTargetItem.tooltip = `Andes ICEman target is not available at ${targetText}.`;
         icemanTargetItem.command = {
-            command: "workbench.action.openSettings",
-            title: "Open Andes ICEman Settings",
-            arguments: ["andesIceman"]
+            command: "gdbScript.showIcemanConfigActions",
+            title: "Configure Andes ICEman"
         };
         icemanTargetItem.show();
     }
@@ -945,6 +943,47 @@ async function activate(context) {
         vscode.window.showInformationMessage(`GDB target port set to ${targetPort}.`);
     });
 
+    const showIcemanConfigActionsDisposable = vscode.commands.registerCommand("gdbScript.showIcemanConfigActions", async () => {
+        const selected = await vscode.window.showQuickPick(
+            [
+                {
+                    label: "Select Andes ICEman Target Type",
+                    description: "andesIceman.targetType",
+                    command: "gdbScript.selectIcemanTargetType"
+                },
+                {
+                    label: "Set Andes ICEman Burner Port",
+                    description: "andesIceman.burnerPort",
+                    command: "gdbScript.setIcemanBurnerPort"
+                },
+                {
+                    label: "Set Andes ICEman Telnet Port",
+                    description: "andesIceman.telnetPort",
+                    command: "gdbScript.setIcemanTelnetPort"
+                },
+                {
+                    label: "Set Andes ICEman GDB Port Range",
+                    description: "andesIceman.gdbPortRange",
+                    command: "gdbScript.setIcemanGdbPortRange"
+                },
+                {
+                    label: "Set GDB Target Port",
+                    description: "gdbScriptRunner.target.port",
+                    command: "gdbScript.setTargetPort"
+                }
+            ],
+            {
+                placeHolder: "Select Andes ICEman configuration action"
+            }
+        );
+
+        if (!selected) {
+            return;
+        }
+
+        await vscode.commands.executeCommand(selected.command);
+    });
+
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
@@ -1155,6 +1194,7 @@ async function activate(context) {
         setIcemanTelnetPortDisposable,
         setIcemanGdbPortRangeDisposable,
         setTargetPortDisposable,
+        showIcemanConfigActionsDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         showMemoryInspectorDisposable,
