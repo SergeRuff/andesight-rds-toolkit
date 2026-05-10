@@ -944,31 +944,35 @@ async function activate(context) {
     });
 
     const showIcemanConfigActionsDisposable = vscode.commands.registerCommand("gdbScript.showIcemanConfigActions", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const icemanConfig = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const targetConfig = vscode.workspace.getConfiguration("gdbScriptRunner.target", folder && folder.uri);
         const selected = await vscode.window.showQuickPick(
             [
                 {
                     label: "Select Andes ICEman Target Type",
-                    description: "andesIceman.targetType",
+                    description: String(icemanConfig.get("targetType", ANDES_ICEMAN_DEFAULTS.targetType)),
                     command: "gdbScript.selectIcemanTargetType"
                 },
                 {
                     label: "Set Andes ICEman Burner Port",
-                    description: "andesIceman.burnerPort",
+                    description: String(icemanConfig.get("burnerPort", ANDES_ICEMAN_DEFAULTS.burnerPort)),
                     command: "gdbScript.setIcemanBurnerPort"
                 },
                 {
                     label: "Set Andes ICEman Telnet Port",
-                    description: "andesIceman.telnetPort",
+                    description: String(icemanConfig.get("telnetPort", ANDES_ICEMAN_DEFAULTS.telnetPort)),
                     command: "gdbScript.setIcemanTelnetPort"
                 },
                 {
                     label: "Set Andes ICEman GDB Port Range",
-                    description: "andesIceman.gdbPortRange",
+                    description: String(icemanConfig.get("gdbPortRange", ANDES_ICEMAN_DEFAULTS.gdbPortRange)),
                     command: "gdbScript.setIcemanGdbPortRange"
                 },
                 {
                     label: "Set GDB Target Port",
-                    description: "gdbScriptRunner.target.port",
+                    description: String(targetConfig.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort)),
                     command: "gdbScript.setTargetPort"
                 }
             ],
