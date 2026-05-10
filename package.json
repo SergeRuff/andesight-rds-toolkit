@@ -19,6 +19,11 @@
     "onCommand:gdbScript.startIceman",
     "onCommand:gdbScript.stopIceman",
     "onCommand:gdbScript.restartIceman",
+    "onCommand:gdbScript.selectIcemanTargetType",
+    "onCommand:gdbScript.setIcemanBurnerPort",
+    "onCommand:gdbScript.setIcemanTelnetPort",
+    "onCommand:gdbScript.setIcemanGdbPortRange",
+    "onCommand:gdbScript.setTargetPort",
     "onCommand:gdbScript.regenerateLaunchJson",
     "onCommand:gdbScript.openDisassemblyViewRight",
     "onCommand:gdbScript.showMemoryInspector",
@@ -77,8 +82,10 @@
             "order": 4
           },
           "gdbScriptRunner.target.port": {
-            "type": "string",
-            "default": "9902",
+            "type": "number",
+            "default": 9902,
+            "minimum": 1,
+            "maximum": 65535,
             "description": "GDB target port used by the CDT GDB target adapter.",
             "order": 5
           },
@@ -213,6 +220,31 @@
         "command": "gdbScript.restartIceman",
         "title": "RDS: Restart Andes ICEman",
         "icon": "$(debug-restart)"
+      },
+      {
+        "command": "gdbScript.selectIcemanTargetType",
+        "title": "RDS: Select Andes ICEman Target Type",
+        "icon": "$(list-selection)"
+      },
+      {
+        "command": "gdbScript.setIcemanBurnerPort",
+        "title": "RDS: Set Andes ICEman Burner Port",
+        "icon": "$(symbol-number)"
+      },
+      {
+        "command": "gdbScript.setIcemanTelnetPort",
+        "title": "RDS: Set Andes ICEman Telnet Port",
+        "icon": "$(symbol-number)"
+      },
+      {
+        "command": "gdbScript.setIcemanGdbPortRange",
+        "title": "RDS: Set Andes ICEman GDB Port Range",
+        "icon": "$(symbol-number)"
+      },
+      {
+        "command": "gdbScript.setTargetPort",
+        "title": "RDS: Set GDB Target Port",
+        "icon": "$(symbol-number)"
       },
       {
         "command": "gdbScript.regenerateLaunchJson",

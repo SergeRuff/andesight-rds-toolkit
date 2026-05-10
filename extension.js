@@ -18,6 +18,16 @@ let tailState = {
     partial: ""
 };
 let icemanCooldown = 300;
+const ANDES_ICEMAN_DEFAULTS = {
+    burnerPort: 9900,
+    telnetPort: 9901,
+    gdbPortRange: "9902:49151",
+    targetType: "v5",
+    startupDelayMs: 3000
+};
+const GDB_SCRIPT_RUNNER_DEFAULTS = {
+    targetPort: 9902
+};
 
 function getOutputChannel() {
     if (!outputChannel) {
@@ -233,13 +243,103 @@ function getIcemanConfiguration(folder, editor) {
         args: expandConfigValue(config.get("args", []), editor, folder),
         cwd: expandConfigValue(config.get("cwd", "${workspaceFolder}"), editor, folder),
         andesRoot: expandConfigValue(config.get("andesRoot", ""), editor, folder),
-        burnerPort: config.get("burnerPort", 9900),
-        telnetPort: config.get("telnetPort", 9901),
-        gdbPortRange: expandConfigValue(config.get("gdbPortRange", "9902:49151"), editor, folder),
-        targetType: config.get("targetType", "v5"),
+        burnerPort: config.get("burnerPort", ANDES_ICEMAN_DEFAULTS.burnerPort),
+        telnetPort: config.get("telnetPort", ANDES_ICEMAN_DEFAULTS.telnetPort),
+        gdbPortRange: expandConfigValue(config.get("gdbPortRange", ANDES_ICEMAN_DEFAULTS.gdbPortRange), editor, folder),
+        targetType: config.get("targetType", ANDES_ICEMAN_DEFAULTS.targetType),
         useAndesEnvironment: config.get("useAndesEnvironment", false),
-        startupDelayMs: config.get("startupDelayMs", 10000)
+        startupDelayMs: config.get("startupDelayMs", ANDES_ICEMAN_DEFAULTS.startupDelayMs)
     };
+}
+
+async function promptAndUpdateNumericSetting(config, key, options, target) {
+    const currentValue = config.get(key, options.defaultValue);
+    const input = await vscode.window.showInputBox({
+        title: options.title,
+        prompt: `Current: ${currentValue}. Default: ${options.defaultValue}.`,
+        placeHolder: String(options.defaultValue),
+        value: String(currentValue),
+        validateInput: (value) => {
+            const trimmedValue = value.trim();
+
+            if (!trimmedValue) {
+                return undefined;
+            }
+
+            const numericValue = Number(trimmedValue);
+
+            if (!/^\d+$/.test(trimmedValue)) {
+                return options.integerErrorMessage;
+            }
+
+            if (!Number.isInteger(numericValue) || numericValue < options.minimum || numericValue > options.maximum) {
+                return options.rangeErrorMessage;
+            }
+
+            return undefined;
+        }
+    });
+
+    if (input === undefined) {
+        return undefined;
+    }
+
+    const updatedValue = input.trim() ? Number(input.trim()) : options.defaultValue;
+    await config.update(key, updatedValue, target);
+
+    return updatedValue;
+}
+
+async function promptAndUpdateStringSetting(config, key, options, target) {
+    const currentValue = config.get(key, options.defaultValue);
+    const input = await vscode.window.showInputBox({
+        title: options.title,
+        prompt: `Current: ${currentValue}. Default: ${options.defaultValue}.`,
+        placeHolder: String(options.defaultValue),
+        value: String(currentValue),
+        validateInput: (value) => {
+            const trimmedValue = value.trim();
+
+            if (!trimmedValue) {
+                return undefined;
+            }
+
+            return options.validate(trimmedValue);
+        }
+    });
+
+    if (input === undefined) {
+        return undefined;
+    }
+
+    const updatedValue = input.trim() || options.defaultValue;
+    await config.update(key, updatedValue, target);
+
+    return updatedValue;
+}
+
+function validateTcpPort(value) {
+    const port = Number(value);
+
+    return /^\d+$/.test(value) && Number.isInteger(port) && port >= 1 && port <= 65535;
+}
+
+function validateGdbPortRange(value) {
+    const parts = value.split(":");
+
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        return "Enter a GDB port range in format startPort:endPort.";
+    }
+
+    if (!validateTcpPort(parts[0]) || !validateTcpPort(parts[1])) {
+        return "Both ports must be numeric TCP ports in range 1..65535.";
+    }
+
+    if (Number(parts[0]) > Number(parts[1])) {
+        return "Start port must be less than or equal to end port.";
+    }
+
+    return undefined;
 }
 
 function trimTrailingSeparators(value) {
@@ -344,7 +444,7 @@ function getTargetEndpoint(folder) {
 
     return {
         host: config.get("host", "localhost"),
-        port: Number(config.get("port", "9902"))
+        port: Number(config.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort))
     };
 }
 
@@ -415,15 +515,6 @@ async function updateIcemanStatusBar() {
 
     const folder = getActiveWorkspaceFolder();
 
-    if (!folder) {
-        icemanStatusItem.text = "$(debug-disconnect) ICEman is inactive";
-        icemanStatusItem.color = new vscode.ThemeColor("errorForeground");
-        icemanStatusItem.tooltip = "Open a workspace folder to check Andes ICEman status.";
-        icemanTargetItem.hide();
-        icemanTargetItem.tooltip = "No workspace folder is active.";
-        return;
-    }
-
     const targetEndpoint = getTargetEndpoint(folder);
     const targetText = `${targetEndpoint.host}:${targetEndpoint.port}`;
     const isAvailable = await isTargetEndpointAvailable(folder);
@@ -440,10 +531,21 @@ async function updateIcemanStatusBar() {
     if (isAvailable) {
         icemanTargetItem.text = targetText;
         icemanTargetItem.color = undefined;
-        icemanTargetItem.tooltip = "Configured GDB target endpoint.";
+        icemanTargetItem.tooltip = `Configured GDB target endpoint: ${targetText}.`;
+        icemanTargetItem.command = {
+            command: "gdbScript.showIcemanConfigActions",
+            title: "Configure Andes ICEman"
+        };
         icemanTargetItem.show();
     } else {
-        icemanTargetItem.hide();
+        icemanTargetItem.text = "$(settings-gear) Config";
+        icemanTargetItem.color = new vscode.ThemeColor("disabledForeground");
+        icemanTargetItem.tooltip = `Andes ICEman target is not available at ${targetText}.`;
+        icemanTargetItem.command = {
+            command: "gdbScript.showIcemanConfigActions",
+            title: "Configure Andes ICEman"
+        };
+        icemanTargetItem.show();
     }
 }
 
@@ -702,6 +804,210 @@ async function activate(context) {
         await updateIcemanStatusBar();
     });
 
+    const selectIcemanTargetTypeDisposable = vscode.commands.registerCommand("gdbScript.selectIcemanTargetType", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const currentTargetType = config.get("targetType", ANDES_ICEMAN_DEFAULTS.targetType);
+        const defaultTargetType = ANDES_ICEMAN_DEFAULTS.targetType;
+        const targetTypes = ["v2", "v3", "v3m", "v5"];
+        const selected = await vscode.window.showQuickPick(
+            targetTypes.map((targetType) => {
+                const descriptions = [];
+
+                if (targetType === currentTargetType) {
+                    descriptions.push("current");
+                }
+
+                if (targetType === defaultTargetType) {
+                    descriptions.push("default");
+                }
+
+                return {
+                    label: targetType,
+                    description: descriptions.join(", ") || undefined
+                };
+            }),
+            {
+                placeHolder: "Select Andes ICEman target type"
+            }
+        );
+
+        if (!selected) {
+            return;
+        }
+
+        await config.update(
+            "targetType",
+            selected.label,
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+        vscode.window.showInformationMessage(`Andes ICEman target type set to ${selected.label}.`);
+    });
+
+    const setIcemanBurnerPortDisposable = vscode.commands.registerCommand("gdbScript.setIcemanBurnerPort", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const burnerPort = await promptAndUpdateNumericSetting(
+            config,
+            "burnerPort",
+            {
+                defaultValue: ANDES_ICEMAN_DEFAULTS.burnerPort,
+                minimum: 1,
+                maximum: 65535,
+                title: "Set Andes ICEman burner port",
+                integerErrorMessage: "Enter a numeric TCP port.",
+                rangeErrorMessage: "Port must be in range 1..65535."
+            },
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+
+        if (burnerPort === undefined) {
+            return;
+        }
+
+        vscode.window.showInformationMessage(`Andes ICEman burner port set to ${burnerPort}.`);
+    });
+
+    const setIcemanTelnetPortDisposable = vscode.commands.registerCommand("gdbScript.setIcemanTelnetPort", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const telnetPort = await promptAndUpdateNumericSetting(
+            config,
+            "telnetPort",
+            {
+                defaultValue: ANDES_ICEMAN_DEFAULTS.telnetPort,
+                minimum: 1,
+                maximum: 65535,
+                title: "Set Andes ICEman telnet port",
+                integerErrorMessage: "Enter a numeric TCP port.",
+                rangeErrorMessage: "Port must be in range 1..65535."
+            },
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+
+        if (telnetPort === undefined) {
+            return;
+        }
+
+        vscode.window.showInformationMessage(`Andes ICEman telnet port set to ${telnetPort}.`);
+    });
+
+    const setIcemanGdbPortRangeDisposable = vscode.commands.registerCommand("gdbScript.setIcemanGdbPortRange", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+        const gdbPortRange = await promptAndUpdateStringSetting(
+            config,
+            "gdbPortRange",
+            {
+                defaultValue: ANDES_ICEMAN_DEFAULTS.gdbPortRange,
+                title: "Set Andes ICEman GDB port range",
+                validate: validateGdbPortRange
+            },
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+
+        if (gdbPortRange === undefined) {
+            return;
+        }
+
+        vscode.window.showInformationMessage(`Andes ICEman GDB port range set to ${gdbPortRange}.`);
+    });
+
+    const setTargetPortDisposable = vscode.commands.registerCommand("gdbScript.setTargetPort", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const folder = getWorkspaceFolderForCommand(editor);
+        const config = vscode.workspace.getConfiguration("gdbScriptRunner.target", folder && folder.uri);
+        const targetPort = await promptAndUpdateNumericSetting(
+            config,
+            "port",
+            {
+                defaultValue: GDB_SCRIPT_RUNNER_DEFAULTS.targetPort,
+                minimum: 1,
+                maximum: 65535,
+                title: "Set GDB target port",
+                integerErrorMessage: "Enter a numeric TCP port.",
+                rangeErrorMessage: "Port must be a numeric TCP port in range 1..65535."
+            },
+            folder ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global
+        );
+
+        if (targetPort === undefined) {
+            return;
+        }
+
+        await updateIcemanStatusBar();
+        vscode.window.showInformationMessage(`GDB target port set to ${targetPort}.`);
+    });
+
+    const showIcemanConfigActionsDisposable = vscode.commands.registerCommand("gdbScript.showIcemanConfigActions", async () => {
+        while (true) {
+            const editor = vscode.window.activeTextEditor;
+            const folder = getWorkspaceFolderForCommand(editor);
+            const icemanConfig = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+            const targetConfig = vscode.workspace.getConfiguration("gdbScriptRunner.target", folder && folder.uri);
+            const selected = await vscode.window.showQuickPick(
+                [
+                    {
+                        label: "Select Andes ICEman Target Type",
+                        description: String(icemanConfig.get("targetType", ANDES_ICEMAN_DEFAULTS.targetType)),
+                        command: "gdbScript.selectIcemanTargetType"
+                    },
+                    {
+                        label: "Set Andes ICEman Burner Port",
+                        description: String(icemanConfig.get("burnerPort", ANDES_ICEMAN_DEFAULTS.burnerPort)),
+                        command: "gdbScript.setIcemanBurnerPort"
+                    },
+                    {
+                        label: "Set Andes ICEman Telnet Port",
+                        description: String(icemanConfig.get("telnetPort", ANDES_ICEMAN_DEFAULTS.telnetPort)),
+                        command: "gdbScript.setIcemanTelnetPort"
+                    },
+                    {
+                        label: "Set Andes ICEman GDB Port Range",
+                        description: String(icemanConfig.get("gdbPortRange", ANDES_ICEMAN_DEFAULTS.gdbPortRange)),
+                        command: "gdbScript.setIcemanGdbPortRange"
+                    },
+                    {
+                        label: "Set GDB Target Port",
+                        description: String(targetConfig.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort)),
+                        command: "gdbScript.setTargetPort"
+                    },
+                    {
+                        label: "",
+                        kind: vscode.QuickPickItemKind.Separator
+                    },
+                    {
+                        label: "Restart Andes ICEman",
+                        description: "",
+                        command: "gdbScript.restartIceman"
+                    },
+                    {
+                        label: "Exit",
+                        description: "Esc",
+                        exit: true
+                    }
+                ],
+                {
+                    placeHolder: "Select Andes ICEman configuration action"
+                }
+            );
+
+            if (!selected) {
+                return;
+            }
+
+            if (selected.exit) {
+                return;
+            }
+
+            await vscode.commands.executeCommand(selected.command);
+        }
+    });
+
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
         const editor = vscode.window.activeTextEditor;
         const folder = getWorkspaceFolderForCommand(editor);
@@ -907,6 +1213,12 @@ async function activate(context) {
         startIcemanDisposable,
         stopIcemanDisposable,
         restartIcemanDisposable,
+        selectIcemanTargetTypeDisposable,
+        setIcemanBurnerPortDisposable,
+        setIcemanTelnetPortDisposable,
+        setIcemanGdbPortRangeDisposable,
+        setTargetPortDisposable,
+        showIcemanConfigActionsDisposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
         showMemoryInspectorDisposable,
