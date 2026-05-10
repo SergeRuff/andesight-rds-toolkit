@@ -944,57 +944,68 @@ async function activate(context) {
     });
 
     const showIcemanConfigActionsDisposable = vscode.commands.registerCommand("gdbScript.showIcemanConfigActions", async () => {
-        const editor = vscode.window.activeTextEditor;
-        const folder = getWorkspaceFolderForCommand(editor);
-        const icemanConfig = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
-        const targetConfig = vscode.workspace.getConfiguration("gdbScriptRunner.target", folder && folder.uri);
-        const selected = await vscode.window.showQuickPick(
-            [
+        while (true) {
+            const editor = vscode.window.activeTextEditor;
+            const folder = getWorkspaceFolderForCommand(editor);
+            const icemanConfig = vscode.workspace.getConfiguration("andesIceman", folder && folder.uri);
+            const targetConfig = vscode.workspace.getConfiguration("gdbScriptRunner.target", folder && folder.uri);
+            const selected = await vscode.window.showQuickPick(
+                [
+                    {
+                        label: "Select Andes ICEman Target Type",
+                        description: String(icemanConfig.get("targetType", ANDES_ICEMAN_DEFAULTS.targetType)),
+                        command: "gdbScript.selectIcemanTargetType"
+                    },
+                    {
+                        label: "Set Andes ICEman Burner Port",
+                        description: String(icemanConfig.get("burnerPort", ANDES_ICEMAN_DEFAULTS.burnerPort)),
+                        command: "gdbScript.setIcemanBurnerPort"
+                    },
+                    {
+                        label: "Set Andes ICEman Telnet Port",
+                        description: String(icemanConfig.get("telnetPort", ANDES_ICEMAN_DEFAULTS.telnetPort)),
+                        command: "gdbScript.setIcemanTelnetPort"
+                    },
+                    {
+                        label: "Set Andes ICEman GDB Port Range",
+                        description: String(icemanConfig.get("gdbPortRange", ANDES_ICEMAN_DEFAULTS.gdbPortRange)),
+                        command: "gdbScript.setIcemanGdbPortRange"
+                    },
+                    {
+                        label: "Set GDB Target Port",
+                        description: String(targetConfig.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort)),
+                        command: "gdbScript.setTargetPort"
+                    },
+                    {
+                        label: "",
+                        kind: vscode.QuickPickItemKind.Separator
+                    },
+                    {
+                        label: "Restart Andes ICEman",
+                        description: "",
+                        command: "gdbScript.restartIceman"
+                    },
+                    {
+                        label: "Exit",
+                        description: "Esc",
+                        exit: true
+                    }
+                ],
                 {
-                    label: "Select Andes ICEman Target Type",
-                    description: String(icemanConfig.get("targetType", ANDES_ICEMAN_DEFAULTS.targetType)),
-                    command: "gdbScript.selectIcemanTargetType"
-                },
-                {
-                    label: "Set Andes ICEman Burner Port",
-                    description: String(icemanConfig.get("burnerPort", ANDES_ICEMAN_DEFAULTS.burnerPort)),
-                    command: "gdbScript.setIcemanBurnerPort"
-                },
-                {
-                    label: "Set Andes ICEman Telnet Port",
-                    description: String(icemanConfig.get("telnetPort", ANDES_ICEMAN_DEFAULTS.telnetPort)),
-                    command: "gdbScript.setIcemanTelnetPort"
-                },
-                {
-                    label: "Set Andes ICEman GDB Port Range",
-                    description: String(icemanConfig.get("gdbPortRange", ANDES_ICEMAN_DEFAULTS.gdbPortRange)),
-                    command: "gdbScript.setIcemanGdbPortRange"
-                },
-                {
-                    label: "Set GDB Target Port",
-                    description: String(targetConfig.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort)),
-                    command: "gdbScript.setTargetPort"
-                },
-                {
-                    label: "",
-                    kind: vscode.QuickPickItemKind.Separator
-                },
-                {
-                    label: "Restart Andes ICEman",
-                    description: "",
-                    command: "gdbScript.restartIceman"
+                    placeHolder: "Select Andes ICEman configuration action"
                 }
-            ],
-            {
-                placeHolder: "Select Andes ICEman configuration action"
+            );
+
+            if (!selected) {
+                return;
             }
-        );
 
-        if (!selected) {
-            return;
+            if (selected.exit) {
+                return;
+            }
+
+            await vscode.commands.executeCommand(selected.command);
         }
-
-        await vscode.commands.executeCommand(selected.command);
     });
 
     const regenerateLaunchDisposable = vscode.commands.registerCommand("gdbScript.regenerateLaunchJson", async () => {
