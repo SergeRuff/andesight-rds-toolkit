@@ -974,6 +974,15 @@ async function activate(context) {
                     label: "Set GDB Target Port",
                     description: String(targetConfig.get("port", GDB_SCRIPT_RUNNER_DEFAULTS.targetPort)),
                     command: "gdbScript.setTargetPort"
+                },
+                {
+                    label: "",
+                    kind: vscode.QuickPickItemKind.Separator
+                },
+                {
+                    label: "Restart Andes ICEman",
+                    description: "",
+                    command: "gdbScript.restartIceman"
                 }
             ],
             {
