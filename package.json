@@ -304,6 +304,23 @@
           "group": "navigation"
         }
       ]
-    }
+    },
+    "viewsContainers": {
+    "activitybar": [
+      {
+        "id": "andesRds",
+        "title": "AndeSight RDS",
+        "icon": "media/side_bar_icon.png"
+      }
+    ]
+  },
+  "views": {
+    "andesRds": [
+      {
+        "id": "andesRds.tools",
+        "name": "Tools"
+      }
+    ]
+  }
   }
 }
