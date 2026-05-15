@@ -8,6 +8,8 @@ let icemanTerminal;
 let tailTimer;
 let lastLogPath;
 let extensionPath;
+let templatesDir;
+let mediaDir;
 let icemanStatusItem;
 let icemanTargetItem;
 let statusTimer;
@@ -181,7 +183,7 @@ async function ensureLaunchJson(context, folder) {
 async function writeDefaultLaunchJson(context, folder) {
     const vscodeDir = path.join(folder.uri.fsPath, ".vscode");
     const launchPath = path.join(vscodeDir, "launch.json");
-    const templatePath = path.join(context.extensionPath, "launch_default.json");
+    const templatePath = path.join(templatesDir, "launch_default.json");
 
     let content;
     try {
@@ -754,6 +756,8 @@ function createDebugConfigurationProvider() {
 
 async function activate(context) {
     extensionPath = context.extensionPath;
+    templatesDir = path.join(context.extensionPath, "templates")
+    mediaDir = path.join(context.extensionPath, "media")
 
     icemanStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     icemanTargetItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
