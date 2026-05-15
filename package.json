@@ -30,7 +30,7 @@
     "onCommand:gdbScript.showSelectedVariableInMemoryInspector",
     "onCommand:gdbScript.showSelectedPointerTargetInMemoryInspector"
   ],
-  "main": "./extension.js",
+  "main": "./src/extension.js",
   "extensionDependencies": [
     "eclipse-cdt.cdt-gdb-vscode",
     "eclipse-cdt.memory-inspector"
