@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const vscode = require("vscode");
-const iceman = require("#src/iceman");
-const mem_inspect = require("#src/mem_inspect")
+const ICEman = require("#src/iceman");
+const memInspect = require("#src/mem_inspect");
 
 let outputChannel;
 let tailTimer;
@@ -327,7 +327,8 @@ function createDebugConfigurationProvider() {
 async function activate(context) {
     extensionPath = context.extensionPath;
     templatesDir = path.join(context.extensionPath, "templates");
-    iceman.activate(context, { getWorkspaceFolderForCommand });
+    ICEman.activate(context, { getWorkspaceFolderForCommand });
+    memInspect.activate(context);
 
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {
@@ -366,10 +367,6 @@ async function activate(context) {
         await vscode.commands.executeCommand("workbench.action.moveEditorToNextGroup");
     });
 
-    const showMemoryInspectorDisposable = vscode.commands.registerCommand("gdbScript.showMemoryInspector", async () => {
-        await vscode.commands.executeCommand("memory-inspector.show");
-    });
-
     const disposable = vscode.commands.registerCommand("gdbScript.runCurrent", async () => {
         const editor = vscode.window.activeTextEditor;
 
@@ -391,9 +388,9 @@ async function activate(context) {
         const logPath = path.join(folder.uri.fsPath, "gdb-session.log");
         startTail(logPath);
 
-        const icemanConfig = iceman.getIcemanConfiguration(folder, editor);
+        const icemanConfig = ICEman.getIcemanConfiguration(folder, editor);
         if (icemanConfig.enabled) {
-            const started = await iceman.startIceman(folder, editor);
+            const started = await ICEman.startIceman(folder, editor);
 
             if (!started) {
                 return;
@@ -434,105 +431,18 @@ async function activate(context) {
         createDebugConfigurationProvider()
     );
 
-    const showSelectedVariableInMemoryInspectorDisposable =
-    vscode.commands.registerCommand("gdbScript.showSelectedVariableInMemoryInspector", async () => {
-        const editor = vscode.window.activeTextEditor;
-        const session = vscode.debug.activeDebugSession;
-
-        if (!editor || !session) {
-            vscode.window.showWarningMessage("No active debug session.");
-            return;
-        }
-
-        const document = editor.document;
-        let expression = document.getText(editor.selection).trim();
-
-        if (!expression) {
-            const wordRange = document.getWordRangeAtPosition(
-                editor.selection.active,
-                /[A-Za-z_]\w*(?:->\w+|\.\w+|\[[^\]]+\])*/
-            );
-
-            if (wordRange) {
-                expression = document.getText(wordRange).trim();
-            }
-        }
-
-        if (!expression) {
-            vscode.window.showWarningMessage("No variable selected.");
-            return;
-        }
-
-        await vscode.commands.executeCommand("memory-inspector.show-variable", {
-            sessionId: session.id,
-            variable: {
-                name: expression,
-                value: ""
-            },
-            container: {
-                expression
-            }
-        });
-    });
-
-    const showSelectedPointerTargetInMemoryInspectorDisposable =
-    vscode.commands.registerCommand("gdbScript.showSelectedPointerTargetInMemoryInspector", async () => {
-        const editor = vscode.window.activeTextEditor;
-        const session = vscode.debug.activeDebugSession;
-
-        if (!editor || !session) {
-            vscode.window.showWarningMessage("No active debug session.");
-            return;
-        }
-
-        const document = editor.document;
-        let expression = document.getText(editor.selection).trim();
-
-        if (!expression) {
-            const wordRange = document.getWordRangeAtPosition(
-                editor.selection.active,
-                /[A-Za-z_]\w*(?:->\w+|\.\w+|\[[^\]]+\])*/
-            );
-
-            if (wordRange) {
-                expression = document.getText(wordRange).trim();
-            }
-        }
-
-        if (!expression) {
-            vscode.window.showWarningMessage("No variable selected.");
-            return;
-        }
-
-        const pointerTargetExpression = `*(${expression})`;
-        await vscode.commands.executeCommand("memory-inspector.show-variable", {
-            sessionId: session.id,
-            variable: {
-                name: pointerTargetExpression,
-                value: ""
-            },
-            container: {
-                expression: pointerTargetExpression
-            }
-        });
-    });
-
-
     context.subscriptions.push(
         disposable,
         regenerateLaunchDisposable,
         openDisassemblyRightDisposable,
-        showMemoryInspectorDisposable,
         startDisposable,
         terminateDisposable,
         gdbTargetDebugConfigurationProviderDisposable,
         gdbDebugConfigurationProviderDisposable,
-        showSelectedVariableInMemoryInspectorDisposable,
-        showSelectedPointerTargetInMemoryInspectorDisposable,
         {
             dispose: () => {
                 stopTail();
-                iceman.deactivate();
+                ICEman.deactivate();
             }
         }
     );
@@ -540,7 +450,7 @@ async function activate(context) {
 
 function deactivate() {
     stopTail();
-    iceman.deactivate();
+    ICEman.deactivate();
 
     if (outputChannel) {
         outputChannel.dispose();
