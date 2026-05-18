@@ -40,14 +40,6 @@ function getWorkspaceKey(folder) {
     return folder ? folder.uri.toString() : "";
 }
 
-function getActiveWorkspaceFolder() {
-    return getWorkspaceFolderForCommand(vscode.window.activeTextEditor);
-}
-
-function delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function decodeMiString(value) {
     return value
         .replace(/\\n/g, "\n")
