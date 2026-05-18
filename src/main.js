@@ -3,6 +3,7 @@ const path = require("path");
 const vscode = require("vscode");
 const ICEman = require("#src/iceman");
 const memInspect = require("#src/mem_inspect");
+const disassembly = require("#src/disassembly");
 
 let outputChannel;
 let tailTimer;
@@ -321,6 +322,7 @@ async function activate(context) {
     templatesDir = path.join(context.extensionPath, "templates");
     ICEman.activate(context, { getWorkspaceFolderForCommand });
     memInspect.activate(context);
+    disassembly.activate(context);
 
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {
@@ -352,11 +354,6 @@ async function activate(context) {
         }
 
         await writeDefaultLaunchJson(context, folder);
-    });
-
-    const openDisassemblyRightDisposable = vscode.commands.registerCommand("gdbScript.openDisassemblyViewRight", async () => {
-        await vscode.commands.executeCommand("debug.action.openDisassemblyView");
-        await vscode.commands.executeCommand("workbench.action.moveEditorToNextGroup");
     });
 
     const disposable = vscode.commands.registerCommand("gdbScript.runCurrent", async () => {
@@ -426,7 +423,6 @@ async function activate(context) {
     context.subscriptions.push(
         disposable,
         regenerateLaunchDisposable,
-        openDisassemblyRightDisposable,
         startDisposable,
         terminateDisposable,
         gdbTargetDebugConfigurationProviderDisposable,
