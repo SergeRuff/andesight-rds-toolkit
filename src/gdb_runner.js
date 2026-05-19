@@ -1,0 +1,356 @@
+const fs = require("fs");
+const path = require("path");
+const vscode = require("vscode");
+const ICEman = require("#src/iceman");
+
+let outputChannel;
+let tailTimer;
+let lastLogPath;
+let extensionPath;
+let lastScriptPathByWorkspace = new Map();
+let tailState = {
+    filePath: undefined,
+    offset: 0,
+    partial: ""
+};
+
+function getOutputChannel() {
+    if (!outputChannel) {
+        outputChannel = vscode.window.createOutputChannel("GDB Script");
+    }
+
+    return outputChannel;
+}
+
+function getWorkspaceKey(folder) {
+    return folder ? folder.uri.toString() : "";
+}
+
+function decodeMiString(value) {
+    return value
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t")
+        .replace(/\\"/g, "\"")
+        .replace(/\\\\/g, "\\");
+}
+
+function cleanMiLine(line) {
+    const match = line.match(/^[~&@]"(.*)"$/);
+    if (!match) {
+        return null;
+    }
+
+    return decodeMiString(match[1]);
+}
+
+function stopTail() {
+    if (tailTimer) {
+        clearInterval(tailTimer);
+        tailTimer = undefined;
+    }
+
+    tailState = {
+        filePath: undefined,
+        offset: 0,
+        partial: ""
+    };
+}
+
+function readNewLogData(channel) {
+    if (!tailState.filePath) {
+        return;
+    }
+
+    let stat;
+
+    try {
+        stat = fs.statSync(tailState.filePath);
+    } catch {
+        return;
+    }
+
+    if (stat.size < tailState.offset) {
+        tailState.offset = 0;
+        tailState.partial = "";
+    }
+
+    if (stat.size === tailState.offset) {
+        return;
+    }
+
+    const fd = fs.openSync(tailState.filePath, "r");
+
+    try {
+        const length = stat.size - tailState.offset;
+        const buffer = Buffer.alloc(length);
+
+        fs.readSync(fd, buffer, 0, length, tailState.offset);
+        tailState.offset = stat.size;
+
+        const text = tailState.partial + buffer.toString("utf8");
+        const lines = text.split(/\r?\n/);
+
+        tailState.partial = lines.pop() || "";
+
+        for (const line of lines) {
+            const cleaned = cleanMiLine(line);
+
+            if (cleaned !== null && cleaned.length > 0) {
+                channel.append(cleaned);
+            }
+        }
+    } finally {
+        fs.closeSync(fd);
+    }
+}
+
+function startTail(logPath) {
+    stopTail();
+
+    lastLogPath = logPath;
+
+    const channel = getOutputChannel();
+    channel.clear();
+    channel.show(true);
+
+    tailState = {
+        filePath: logPath,
+        offset: 0,
+        partial: ""
+    };
+
+    tailTimer = setInterval(() => readNewLogData(channel), 200);
+}
+
+function expandConfigValue(value, editor, folder) {
+    if (typeof value === "string") {
+        const filePath = editor ? editor.document.uri.fsPath : "";
+        const folderPath = folder ? folder.uri.fsPath : "";
+        const workspaceConfig = vscode.workspace.getConfiguration(undefined, folder && folder.uri);
+        const expandString = (text) => text
+            .replace(/\$\{file\}/g, filePath)
+            .replace(/\$\{fileBasename\}/g, filePath ? path.basename(filePath) : "")
+            .replace(/\$\{workspaceFolder\}/g, folderPath)
+            .replace(/\$\{cwd\}/g, folderPath)
+            .replace(/\$\{extensionPath\}/g, extensionPath || "");
+
+        return expandString(value)
+            .replace(/\$\{config:([^}]+)\}/g, (_, key) => {
+                const configValue = workspaceConfig.get(key);
+                return configValue === undefined ? "" : expandString(String(configValue));
+            });
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => expandConfigValue(item, editor, folder));
+    }
+
+    if (value && typeof value === "object") {
+        const result = {};
+
+        for (const [key, nestedValue] of Object.entries(value)) {
+            result[key] = expandConfigValue(nestedValue, editor, folder);
+        }
+
+        return result;
+    }
+
+    return value;
+}
+
+function getDebugConfiguration(folder, editor) {
+    const launch = vscode.workspace.getConfiguration("launch", folder.uri);
+    const configurations = launch.get("configurations", []);
+
+    const selectedName = vscode.workspace.getConfiguration("debug").get("selectedConfiguration");
+    const baseConfig =
+        configurations.find((config) => config.name === selectedName) ||
+        configurations.find((config) => config.name === "CDT GDB Target: run script file") ||
+        configurations.find((config) => config.name === "GDB-Multiarch: run script file") ||
+        configurations[0];
+
+    if (!baseConfig) {
+        return undefined;
+    }
+
+    return expandConfigValue(baseConfig, editor, folder);
+}
+
+function setLastScriptPath(folder, scriptPath) {
+    lastScriptPathByWorkspace.set(getWorkspaceKey(folder), scriptPath);
+}
+
+function getLastScriptPath(folder) {
+    return lastScriptPathByWorkspace.get(getWorkspaceKey(folder));
+}
+
+function isScriptRunnerDebugConfiguration(config) {
+    return config.name === "CDT GDB Target: run script file" ||
+        config.name === "GDB-Multiarch: run script file";
+}
+
+function getConfigScriptPath(folder, config) {
+    if (config.__gdbScriptRunnerScriptPath) {
+        return config.__gdbScriptRunnerScriptPath;
+    }
+
+    if (isScriptRunnerDebugConfiguration(config)) {
+        return getLastScriptPath(folder);
+    }
+
+    return undefined;
+}
+
+function applyScriptPathToInitCommands(config, scriptPath) {
+    if (!scriptPath || !Array.isArray(config.initCommands)) {
+        return config;
+    }
+
+    return {
+        ...config,
+        initCommands: config.initCommands.map((command) => {
+            if (typeof command !== "string") {
+                return command;
+            }
+
+            if (command.includes("${file}")) {
+                return command.replace(/\$\{file\}/g, scriptPath);
+            }
+
+            if (/^\s*source\s+/.test(command)) {
+                return `source ${scriptPath}`;
+            }
+
+            return command;
+        })
+    };
+}
+
+function expandExtensionPathValue(value) {
+    if (typeof value === "string") {
+        return value.replace(/\$\{extensionPath\}/g, extensionPath || "");
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(expandExtensionPathValue);
+    }
+
+    if (value && typeof value === "object") {
+        const result = {};
+
+        for (const [key, nestedValue] of Object.entries(value)) {
+            result[key] = expandExtensionPathValue(nestedValue);
+        }
+
+        return result;
+    }
+
+    return value;
+}
+
+function createDebugConfigurationProvider() {
+    return {
+        resolveDebugConfiguration(folder, config) {
+            const scriptPath = getConfigScriptPath(folder, config);
+            return applyScriptPathToInitCommands(config, scriptPath);
+        },
+        resolveDebugConfigurationWithSubstitutedVariables(folder, config) {
+            const scriptPath = getConfigScriptPath(folder, config);
+            return expandExtensionPathValue(applyScriptPathToInitCommands(config, scriptPath));
+        }
+    };
+}
+
+function registerRunCurrentCommand() {
+    return vscode.commands.registerCommand("gdbScript.runCurrent", async () => {
+        const editor = vscode.window.activeTextEditor;
+
+        if (!editor || !editor.document.fileName.endsWith(".gdb")) {
+            vscode.window.showWarningMessage("Open a .gdb script first.");
+            return;
+        }
+
+        const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+        const scriptPath = editor.document.uri.fsPath;
+
+        if (!folder) {
+            vscode.window.showErrorMessage("The .gdb file is not inside an opened workspace folder.");
+            return;
+        }
+
+        setLastScriptPath(folder, scriptPath);
+
+        const logPath = path.join(folder.uri.fsPath, "gdb-session.log");
+        startTail(logPath);
+
+        const icemanConfig = ICEman.getIcemanConfiguration(folder, editor);
+        if (icemanConfig.enabled) {
+            const started = await ICEman.startIceman(folder, editor);
+
+            if (!started) {
+                return;
+            }
+        }
+
+        const config = getDebugConfiguration(folder, editor);
+
+        if (!config) {
+            vscode.window.showErrorMessage("No debug configuration found in launch.json.");
+            return;
+        }
+
+        config.__gdbScriptRunnerScriptPath = scriptPath;
+
+        await vscode.debug.startDebugging(folder, config);
+    });
+}
+
+function activate(context) {
+    extensionPath = context.extensionPath;
+
+    const startDisposable = vscode.debug.onDidStartDebugSession(() => {
+        if (!tailTimer && lastLogPath) {
+            startTail(lastLogPath);
+        }
+    });
+
+    const terminateDisposable = vscode.debug.onDidTerminateDebugSession(() => {
+        const channel = getOutputChannel();
+        readNewLogData(channel);
+        stopTail();
+    });
+
+    const gdbTargetDebugConfigurationProviderDisposable = vscode.debug.registerDebugConfigurationProvider(
+        "gdbtarget",
+        createDebugConfigurationProvider()
+    );
+    const gdbDebugConfigurationProviderDisposable = vscode.debug.registerDebugConfigurationProvider(
+        "gdb",
+        createDebugConfigurationProvider()
+    );
+
+    context.subscriptions.push(
+        registerRunCurrentCommand(),
+        startDisposable,
+        terminateDisposable,
+        gdbTargetDebugConfigurationProviderDisposable,
+        gdbDebugConfigurationProviderDisposable,
+        {
+            dispose: deactivate
+        }
+    );
+}
+
+function deactivate() {
+    stopTail();
+
+    if (outputChannel) {
+        outputChannel.dispose();
+        outputChannel = undefined;
+    }
+}
+
+module.exports = {
+    activate,
+    deactivate
+};
