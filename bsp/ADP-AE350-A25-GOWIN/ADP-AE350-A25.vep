@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?><vep>
+  <?vep version="1.2"?>
+  <platformConfig>
+    <clockSrc divider="2" name="APB" schedular="target"/>
+    <clockSrc divider="1" name="AHB" schedular="target"/>
+    <clockSrc divider="1" name="TARGET" schedular="target"/>
+    <clockSrc divider="1" name="HOST" schedular="host"/>
+    <clockSrc divider="1" name="1ms" schedular="host"/>
+    <clockSrc divider="1000" name="1sec" schedular="host"/>
+    <clockSrc divider="100" name="sspc" schedular="target"/>
+    <clockSrc divider="100" name="LCDC-refresh" schedular="host"/>
+    <clockSrc divider="100" name="ETHC-sche" schedular="host"/>
+    <device name="DRAM" type="hw-memory-ram/rom-basic" version="1.0.0.0">
+      <attribute name="size" value="0x08000000"/>
+    </device>
+    <device name="UART1" type="hw-uart-atcuart100" version="1.0.0.0">
+      <clockIn clockSrc="APB" name="timeout"/>
+      <clockIn clockSrc="APB" name="timeout-tx"/>
+      <attribute name="id-revision" value="0x02010000"/>
+      <attribute name="configuration" value="0x0"/>
+      <attribute name="major-revision" value="0x000"/>
+      <attribute name="minor-revision" value="0x0"/>
+      <attribute name="fifo-depth" value="0x10"/>
+    </device>
+    <device name="UART2" type="hw-uart-atcuart100" version="1.0.0.0">
+      <clockIn clockSrc="APB" name="timeout"/>
+      <clockIn clockSrc="APB" name="timeout-tx"/>
+      <attribute name="id-revision" value="0x02010000"/>
+      <attribute name="configuration" value="0x0"/>
+      <attribute name="major-revision" value="0x000"/>
+      <attribute name="minor-revision" value="0x0"/>
+      <attribute name="fifo-depth" value="0x10"/>
+    </device>
+    <device name="Timer" type="hw-timer-atcpit100" version="1.0.0.0">
+      <clockIn clockSrc="APB" name="PCLK"/>
+      <clockIn clockSrc="HOST" name="EXTCLK"/>
+      <attribute name="id-revision" value="0x03031000"/>
+      <attribute name="configuration" value="0x4"/>
+      <attribute name="major-revision" value="0x00"/>
+      <attribute name="minor-revision" value="0x0"/>
+      <attribute name="number-of-channels" value="0x4"/>
+      <attribute name="max-tick-step" value="0x1000"/>
+      <attribute name="pclk-scale" value="1.0"/>
+      <attribute name="extclk-scale" value="1.0"/>
+      <relate device="cpu" port="cpu"/>
+    </device>
+    <device name="cpu" type="hw-cpu-riscvhf" version="1.0.0.1">
+      <busConn master="data-memory" slave="AHB.SlaveConnection"/>
+      <busConn master="insn-memory" slave="AHB.SlaveConnection"/>
+      <pinConn from="PLIC.interrupt-target-0" inpin="meip"/>
+      <pinConn from="PLIC-SWINT.interrupt-target-0" inpin="msip"/>
+      <pinConn from="V5Timer.intr_pin" inpin="mtip"/>
+      <pinConn from="PLIC.interrupt-target-0-source-id" inpin="intr_id"/>
+      <attribute name="insn-count" value="0"/>
+      <attribute name="cpu-option" value="--conf-cpu-model a25 --conf-addpmc 0 --conf-btb on --conf-bus-overlap on --conf-bus-width 64 --conf-cctl on --conf-cctl-version 0 --conf-codense-hardwired off --conf-csr-property 0x7c0:0x1:RW:0x0,0x7c1:0x1:RW:0x0 --conf-dcache on --conf-dcache-ecc ecc --conf-dcache-line-size 32B --conf-dcache-lock on --conf-dcache-set 256 --conf-dcache-way 4 --conf-dlm on --conf-dlm-bank 1 --conf-dlm-ecc ecc --conf-dlm-size 64KB --conf-gprport 3r2w --conf-icache on --conf-icache-ecc ecc --conf-icache-line-size 32B --conf-icache-lock on --conf-icache-set 256 --conf-icache-way 4 --conf-ilm on --conf-ilm-bank 1 --conf-ilm-ecc ecc --conf-ilm-size 64KB --conf-ilm-xonly off --conf-isa-32 on --conf-isa-a on --conf-isa-ace off --conf-isa-bf16cvt off --conf-isa-c on --conf-isa-codense on --conf-isa-d on --conf-isa-dsp on --conf-isa-e off --conf-isa-efhw on --conf-isa-f on --conf-isa-v5 on --conf-mmu on --conf-mmu-micro-dtlb-size 8 --conf-mmu-micro-itlb-size 8 --conf-mmu-tlb-set 32 --conf-mmu-tlb-way 4 --conf-mul fast --conf-pa-width 33 --conf-pfm on --conf-pfm-nds on --conf-pipeline off --conf-pma 0 --conf-pmp 16 --conf-pmp-granularity 8 --conf-powerbrake on --conf-profile-fastl1 on --conf-ras on --conf-sbp on --conf-slave-port off --conf-stack-protection on --conf-supervisor-mode on --conf-trigger-module-num 8 --conf-unaligned-access on --conf-user-mode on --conf-va-width 32 --conf-vectored-plic on --init-dcache-en off --init-dlm-base 0xA0200000 --init-dlm-en on --init-icache-en off --init-ilm-base 0xA0000000 --init-ilm-en on --init-marchid 2597 --init-mimpid 1 --init-nba 0x0 --ideal-zero-memory-latency on --init-mhartid 0x0"/>
+      <attribute name="step-insn-count" value="10000"/>
+      <attribute name="enable-step-trap?" value="false"/>
+      <attribute name="trace-filename" value="-"/>
+      <attribute name="trace-extract?" value="false"/>
+      <attribute name="trace-semantics?" value="false"/>
+      <attribute name="trace-disassemble?" value="false"/>
+      <attribute name="trace-result?" value="false"/>
+      <attribute name="trace-counter?" value="false"/>
+      <attribute name="final-insn-count?" value="false"/>
+      <attribute name="engine-type" value="scache"/>
+      <attribute name="step-cycles" value=""/>
+      <attribute name="trap" value=""/>
+      <attribute name="trap-code" value=""/>
+      <attribute name="MHZ" value="60"/>
+      <attribute name="maximum_num_of_intrpt" value="64"/>
+      <attribute name="device-region" value="[0xe6800000-0xe68fffff],[0xe0100000-0xe01fffff],[0x80000000-0x801fffff],[0xf0200000-0xf02fffff],[0xf0300000-0xf03fffff],[0xf0400000-0xf04fffff],[0xf0500000-0xf05fffff],[0xf0600000-0xf06fffff],[0xf0700000-0xf07fffff],[0xf0e00000-0xf0efffff],[0xf0d00000-0xf0dfffff],[0xf0100000-0xf01fffff],[0xe6000000-0xe60fffff],[0xe4000000-0xe5ffffff],[0xe6400000-0xe67fffff],[0xe0000000-0xe00fffff],[0xf0b00000-0xf0bfffff],[0xf0f00000-0xf0ffffff],[0xf0000000-0xf00fffff],[0xf0a00000-0xf0afffff],[0x88000000-0x881fffff],[0xc0000000-0xc00fffff],[0xe0400000-0xe04fffff],[0xe0200000-0xe02fffff],[0xf0c00000-0xf0cfffff]"/>
+    </device>
+    <device name="V5Timer" type="hw-timer-v5plst" version="1.0.0.0">
+      <clockIn clockSrc="APB" name="PCLK"/>
+      <attribute name="MHZ" value="60"/>
+      <attribute name="enhance?" value="0"/>
+      <relate device="cpu" port="cpu"/>
+    </device>
+    <device name="PLIC" type="hw-interrupt-nds-plic" version="1.0.0.0">
+      <pinConn from="UART1.INTR" inpin="interrupt-source-8"/>
+      <pinConn from="UART2.INTR" inpin="interrupt-source-9"/>
+      <pinConn from="Timer.interrupt" inpin="interrupt-source-3"/>
+      <pinConn from="GPIO.interrupt" inpin="interrupt-source-7"/>
+      <pinConn from="ETHC.irq-out" inpin="interrupt-source-19"/>
+      <pinConn from="SDC.sdc_intr" inpin="interrupt-source-18"/>
+      <pinConn from="RTC.rtc-int-alarm" inpin="interrupt-source-2"/>
+      <pinConn from="RTC.rtc-int-sec" inpin="interrupt-source-1"/>
+      <pinConn from="cpu.ack_plic" inpin="interrupt-target-0-intr-handle-ack"/>
+      <pinConn from="SSP.ssp_intr" inpin="interrupt-source-17"/>
+      <pinConn from="DMAC.dmaint" inpin="interrupt-source-10"/>
+    </device>
+    <device name="PLIC-SWINT" type="hw-interrupt-nds-plic" version="1.0.0.0"/>
+    <device name="PLDM" type="hw-memory-ram/rom-basic" version="1.0.0.0">
+      <attribute name="size" value="0x00100000"/>
+    </device>
+    <device name="GPIO" type="hw-gpio-atcgpio100" version="1.0.0.0">
+      <attribute name="id-revision" value="0x02031000"/>
+      <attribute name="configuration" value="0xe0000020"/>
+      <attribute name="major-revision" value="0x00"/>
+      <attribute name="minor-revision" value="0x0"/>
+      <attribute name="number-of-channels" value="0x20"/>
+      <attribute name="pclk-scale" value="1.0"/>
+      <attribute name="extclk-scale" value="1.0"/>
+    </device>
+    <device name="WDT" type="hw-wdt-atcwdt200" version="1.0.0.0">
+      <attribute name="id-revision" value="0x03002000"/>
+      <attribute name="major-revision" value="0x00"/>
+      <attribute name="minor-revision" value="0x0"/>
+      <attribute name="pclk-scale" value="1.0"/>
+      <attribute name="extclk-scale" value="1.0"/>
+      <attribute name="atcwdt200-wp-num" value="0x5aa5"/>
+      <attribute name="atcwdt200-restart-num" value="0xcafe"/>
+    </device>
+    <device name="SDC" type="hw-ftsdc010" version="1.0.0.0">
+      <attribute name="fifo-depth" value="4"/>
+    </device>
+    <device name="SMU" type="nds-dummy" version="1.0.0.0"/>
+    <device name="AC97CODEC" type="AD1881A_CODEC" version="1.0.0.0">
+      <pinConn from="SSP.txd_r" inpin="SDATA_OUT"/>
+      <pinConn from="SSP.ac97_resetn_r" inpin="RESET"/>
+    </device>
+    <device name="SSP" type="hw-ftsspc010" version="1.0.0.0">
+      <pinConn from="AC97CODEC.SDATA_IN" inpin="rxd"/>
+      <attribute name="tx-fifo-depth" value="8"/>
+      <attribute name="rx-fifo-depth" value="8"/>
+    </device>
+    <device name="ETHC" type="hw-ethc-atc010" version="1.0.0.0">
+      <busConn master="to-access-port" slave="AHB.SlaveConnection"/>
+      <clockIn clockSrc="ETHC-sche" name="aptc-tx-sche"/>
+      <clockIn clockSrc="ETHC-sche" name="aptc-rx-sche"/>
+      <attribute name="bus-endian" value="1"/>
+      <attribute name="host-endian" value="2"/>
+    </device>
+    <device name="RTC" type="hw-rtc-atc100" version="1.0.0.0">
+      <clockIn clockSrc="1sec" name="rtc-clk"/>
+    </device>
+    <device name="SPI_FLASH" type="hw-memory-ram/rom-basic" version="1.0.0.0">
+      <attribute name="size" value="0x00200000"/>
+    </device>
+    <device name="SPI1" type="nds-dummy" version="1.0.0.0"/>
+    <device name="SPI2" type="nds-dummy" version="1.0.0.0"/>
+    <device name="I2C" type="nds-dummy" version="1.0.0.0"/>
+    <device name="APBBRG" type="nds-dummy" version="1.0.0.0"/>
+    <device name="LCDC" type="hw-lcdc-atc010" version="1.0.0.0">
+      <busConn master="frame-buffer" slave="AHB.SlaveConnection"/>
+      <clockIn clockSrc="LCDC-refresh" name="refresh-sync"/>
+      <attribute name="bus-endian" value="1"/>
+      <attribute name="absolute-sync" value="1"/>
+    </device>
+    <device name="SMC_FLASH" type="hw-memory-ram/rom-basic" version="1.0.0.0">
+      <attribute name="size" value="0x00200000"/>
+    </device>
+    <device name="BMC" type="nds-dummy" version="1.0.0.0"/>
+    <device name="DMAC" type="hw-dmac-atc300" version="1.0.0.0">
+      <busConn master="AXIMaster0" slave="AHB.SlaveConnection"/>
+      <attribute name="endianess" value="2"/>
+    </device>
+    <device name="SMC_REG" type="nds-dummy" version="1.0.0.0"/>
+    <bus name="AHB" type="AHB">
+      <busConn slave="APB.SlaveConnection"/>
+      <busConn base="0x00000000" size="0x08000000" slave="DRAM.read-write-port"/>
+      <busConn base="0xE6800000" size="0x00100000" slave="PLDM.read-write-port"/>
+      <busConn base="0xE0100000" size="0x00100000" slave="ETHC.registers"/>
+      <busConn base="0x80000000" size="0x00200000" slave="SPI_FLASH.read-write-port"/>
+      <busConn base="0xE0200000" size="0x00100000" slave="LCDC.registers"/>
+      <busConn base="0x88000000" size="0x00200000" slave="SMC_FLASH.read-write-port"/>
+      <busConn base="0xF0C00000" size="0x00100000" slave="DMAC.registers"/>
+      <busConn base="0xA0000000" size="0x00400000" slave="cpu.slave-port"/>
+    </bus>
+    <bus name="APB" type="APB">
+      <busConn base="0xF0200000" size="0x00100000" slave="UART1.registers"/>
+      <busConn base="0xF0300000" size="0x00100000" slave="UART2.registers"/>
+      <busConn base="0xF0400000" size="0x00100000" slave="Timer.registers"/>
+      <busConn base="0xF0500000" size="0x00100000" slave="WDT.registers"/>
+      <busConn base="0xF0600000" size="0x00100000" slave="RTC.registers"/>
+      <busConn base="0xF0700000" size="0x00100000" slave="GPIO.registers"/>
+      <busConn base="0xF0E00000" size="0x00100000" slave="SDC.read-write-port"/>
+      <busConn base="0xF0D00000" size="0x00100000" slave="SSP.read-write-port"/>
+      <busConn base="0xF0100000" size="0x00100000" slave="SMU.registers"/>
+      <busConn base="0xE6000000" size="0x00100000" slave="V5Timer.registers"/>
+      <busConn base="0xE4000000" size="0x02000000" slave="PLIC.registers"/>
+      <busConn base="0xE6400000" size="0x00400000" slave="PLIC-SWINT.registers"/>
+      <busConn base="0xF0B00000" size="0x00100000" slave="SPI1.registers"/>
+      <busConn base="0xF0F00000" size="0x00100000" slave="SPI2.registers"/>
+      <busConn base="0xF0000000" size="0x00100000" slave="APBBRG.registers"/>
+      <busConn base="0xF0A00000" size="0x00100000" slave="I2C.registers"/>
+      <busConn base="0xC0000000" size="0x00100000" slave="BMC.registers"/>
+      <busConn base="0xE0400000" size="0x00100000" slave="SMC_REG.registers"/>
+    </bus>
+    <attribute name="sys_call_scheme" value="liblinux"/>
+  </platformConfig>
+  <modelVisual>
+    <layout>
+      <layoutDtl name="DRAM">
+        <boundary height="50" width="50" x="469" y="160"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="UART1">
+        <boundary height="50" width="50" x="403" y="340"/>
+        <rotate angle="90"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="UART2">
+        <boundary height="50" width="50" x="466" y="340"/>
+        <rotate angle="90"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="Timer">
+        <boundary height="50" width="50" x="132" y="449"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="cpu">
+        <boundary height="50" width="50" x="112" y="70"/>
+        <rotate angle="270"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="V5Timer">
+        <boundary height="50" width="50" x="91" y="340"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="PLIC">
+        <boundary height="50" width="50" x="162" y="340"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="PLIC-SWINT">
+        <boundary height="50" width="50" x="26" y="340"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="PLDM">
+        <boundary height="50" width="50" x="557" y="160"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="GPIO">
+        <boundary height="50" width="50" x="240" y="340"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="WDT">
+        <boundary height="50" width="50" x="427" y="229"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SDC">
+        <boundary height="50" width="50" x="234" y="451"/>
+        <rotate angle="270"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SMU">
+        <boundary height="50" width="50" x="613" y="340"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="AC97CODEC">
+        <boundary height="50" width="50" x="614" y="449"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SSP">
+        <boundary height="50" width="50" x="534" y="449"/>
+        <rotate angle="270"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="ETHC">
+        <boundary height="50" width="50" x="255" y="70"/>
+        <rotate angle="90"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="RTC">
+        <boundary height="50" width="50" x="318" y="340"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SPI_FLASH">
+        <boundary height="50" width="50" x="470" y="70"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SPI1">
+        <boundary height="50" width="50" x="311" y="449"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SPI2">
+        <boundary height="50" width="50" x="367" y="449"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="I2C">
+        <boundary height="50" width="50" x="423" y="449"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="APBBRG">
+        <boundary height="50" width="50" x="563" y="229"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="LCDC">
+        <boundary height="50" width="50" x="567" y="70"/>
+        <rotate angle="270"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SMC_FLASH">
+        <boundary height="50" width="50" x="633" y="163"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="BMC">
+        <boundary height="50" width="50" x="534" y="339"/>
+        <rotate angle="180"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="DMAC">
+        <boundary height="50" width="77" x="348" y="65"/>
+        <rotate angle="90"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="SMC_REG">
+        <boundary height="50" width="50" x="476" y="449"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="AHB">
+        <boundary height="22" width="640" x="63" y="125"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+      <layoutDtl name="APB">
+        <boundary height="22" width="640" x="61" y="413"/>
+        <rotate angle="0"/>
+        <flip horizontal="false" vertical="false"/>
+      </layoutDtl>
+    </layout>
+  </modelVisual>
+</vep>

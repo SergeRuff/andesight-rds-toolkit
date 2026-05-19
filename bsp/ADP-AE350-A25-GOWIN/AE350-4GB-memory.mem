@@ -1,0 +1,113 @@
+{
+  "version": "1.0.1",
+  "regions": [
+    {
+      "name": "DDR/SRAM",
+      "lowAddr": "0x00000000",
+      "highAddr": "0x80000000",
+      "mode": "rw",
+      "width": "64",
+      "cache": false,
+      "description": "DDR or SRAM"
+    },
+    {
+      "name": "ROM/FLASH",
+      "lowAddr": "0x80000000",
+      "highAddr": "0x90000000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "ROM or FLASH"
+    },
+    {
+      "name": "Local Memory Slave Port: ILM,DLM",
+      "lowAddr": "0xA0000000",
+      "highAddr": "0xA0400000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "Local Memory Slave Port: ILM,DLM"
+    },
+    {
+      "name": "BMC",
+      "lowAddr": "0xC0000000",
+      "highAddr": "0xC0100000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "BMC"
+    },
+    {
+      "name": "AHB Devices",
+      "lowAddr": "0xE0000000",
+      "highAddr": "0xE0500000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "AHB Devices (MAC, LCDC, USB, SMC)"
+    },
+    {
+      "name": "PLIC",
+      "lowAddr": "0xE4000000",
+      "highAddr": "0xE6000000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "Platform-Level Interrupt Controller"
+    },
+    {
+      "name": "PLMT",
+      "lowAddr": "0xE6000000",
+      "highAddr": "0xE6100000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "Platform-Level Machine Timer"
+    },
+    {
+      "name": "PLIC-SWINT",
+      "lowAddr": "0xE6400000",
+      "highAddr": "0xE6800000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "Platform-Level Interrupt Controller SWINT"
+    },
+    {
+      "name": "PLDM",
+      "lowAddr": "0xE6800000",
+      "highAddr": "0xE6900000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "Platform-Level Debug Module"
+    },
+    {
+      "name": "AHB Slave Devices",
+      "lowAddr": "0xE8000000",
+      "highAddr": "0xF0000000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "AHB Slave Devices"
+    },
+    {
+      "name": "APB Devices",
+      "lowAddr": "0xF0000000",
+      "highAddr": "0XF1000000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "APB Devices (SMU, UART1, UART2, PIT, WDT, RTC, GPIO, IIC, SPI1, SDC, AC97/IIS, DMAC, SPI2)"
+    },
+    {
+      "name": "APB Extend Devices",
+      "lowAddr": "0xF8000000",
+      "highAddr": "0xFC000000",
+      "mode": "rw",
+      "width": "32",
+      "cache": false,
+      "description": "APB Extend Devices"
+    }
+  ]
+}

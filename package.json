@@ -30,7 +30,7 @@
     "onCommand:gdbScript.showSelectedVariableInMemoryInspector",
     "onCommand:gdbScript.showSelectedPointerTargetInMemoryInspector"
   ],
-  "main": "./extension.js",
+  "main": "./app/main.js",
   "extensionDependencies": [
     "eclipse-cdt.cdt-gdb-vscode",
     "eclipse-cdt.memory-inspector"
@@ -91,7 +91,7 @@
           },
           "gdbScriptRunner.svd.path": {
             "type": "string",
-            "default": "${extensionPath}/svd/AE350-4GB.svd",
+            "default": "${extensionPath}/bsp/ADP-AE350-A25-GOWIN/AE350-4GB.svd",
             "description": "Path to the SVD file used by CDT Peripheral Inspector.",
             "order": 6
           }
@@ -322,5 +322,8 @@
       }
     ]
   }
+  },
+  "imports": {
+    "#app/*": "./app/*.js"
   }
 }
