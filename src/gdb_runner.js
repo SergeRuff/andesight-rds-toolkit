@@ -1,125 +1,13 @@
-const fs = require("fs");
 const path = require("path");
 const vscode = require("vscode");
 const ICEman = require("#src/iceman");
+const logger = require("#src/logger");
 
-let outputChannel;
-let tailTimer;
-let lastLogPath;
 let extensionPath;
 let lastScriptPathByWorkspace = new Map();
-let tailState = {
-    filePath: undefined,
-    offset: 0,
-    partial: ""
-};
-
-function getOutputChannel() {
-    if (!outputChannel) {
-        outputChannel = vscode.window.createOutputChannel("GDB Script");
-    }
-
-    return outputChannel;
-}
 
 function getWorkspaceKey(folder) {
     return folder ? folder.uri.toString() : "";
-}
-
-function decodeMiString(value) {
-    return value
-        .replace(/\\n/g, "\n")
-        .replace(/\\t/g, "\t")
-        .replace(/\\"/g, "\"")
-        .replace(/\\\\/g, "\\");
-}
-
-function cleanMiLine(line) {
-    const match = line.match(/^[~&@]"(.*)"$/);
-    if (!match) {
-        return null;
-    }
-
-    return decodeMiString(match[1]);
-}
-
-function stopTail() {
-    if (tailTimer) {
-        clearInterval(tailTimer);
-        tailTimer = undefined;
-    }
-
-    tailState = {
-        filePath: undefined,
-        offset: 0,
-        partial: ""
-    };
-}
-
-function readNewLogData(channel) {
-    if (!tailState.filePath) {
-        return;
-    }
-
-    let stat;
-
-    try {
-        stat = fs.statSync(tailState.filePath);
-    } catch {
-        return;
-    }
-
-    if (stat.size < tailState.offset) {
-        tailState.offset = 0;
-        tailState.partial = "";
-    }
-
-    if (stat.size === tailState.offset) {
-        return;
-    }
-
-    const fd = fs.openSync(tailState.filePath, "r");
-
-    try {
-        const length = stat.size - tailState.offset;
-        const buffer = Buffer.alloc(length);
-
-        fs.readSync(fd, buffer, 0, length, tailState.offset);
-        tailState.offset = stat.size;
-
-        const text = tailState.partial + buffer.toString("utf8");
-        const lines = text.split(/\r?\n/);
-
-        tailState.partial = lines.pop() || "";
-
-        for (const line of lines) {
-            const cleaned = cleanMiLine(line);
-
-            if (cleaned !== null && cleaned.length > 0) {
-                channel.append(cleaned);
-            }
-        }
-    } finally {
-        fs.closeSync(fd);
-    }
-}
-
-function startTail(logPath) {
-    stopTail();
-
-    lastLogPath = logPath;
-
-    const channel = getOutputChannel();
-    channel.clear();
-    channel.show(true);
-
-    tailState = {
-        filePath: logPath,
-        offset: 0,
-        partial: ""
-    };
-
-    tailTimer = setInterval(() => readNewLogData(channel), 200);
 }
 
 function expandConfigValue(value, editor, folder) {
@@ -281,7 +169,7 @@ function registerRunCurrentCommand() {
         setLastScriptPath(folder, scriptPath);
 
         const logPath = path.join(folder.uri.fsPath, "gdb-session.log");
-        startTail(logPath);
+        logger.startTail(logPath);
 
         const icemanConfig = ICEman.getIcemanConfiguration(folder, editor);
         if (icemanConfig.enabled) {
@@ -309,15 +197,12 @@ function activate(context) {
     extensionPath = context.extensionPath;
 
     const startDisposable = vscode.debug.onDidStartDebugSession(() => {
-        if (!tailTimer && lastLogPath) {
-            startTail(lastLogPath);
-        }
+        logger.resumeTail();
     });
 
     const terminateDisposable = vscode.debug.onDidTerminateDebugSession(() => {
-        const channel = getOutputChannel();
-        readNewLogData(channel);
-        stopTail();
+        logger.readNewLogData();
+        logger.stopTail();
     });
 
     const gdbTargetDebugConfigurationProviderDisposable = vscode.debug.registerDebugConfigurationProvider(
@@ -342,12 +227,7 @@ function activate(context) {
 }
 
 function deactivate() {
-    stopTail();
-
-    if (outputChannel) {
-        outputChannel.dispose();
-        outputChannel = undefined;
-    }
+    logger.deactivate();
 }
 
 module.exports = {
