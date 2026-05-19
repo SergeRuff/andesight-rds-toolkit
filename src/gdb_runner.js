@@ -1,10 +1,16 @@
 const path = require("path");
 const vscode = require("vscode");
-const logger = require("#src/logger");
 
 let extensionPath;
 let lastScriptPathByWorkspace = new Map();
 let ensureIcemanStartedForDebug = async () => true;
+let logger = {
+    deactivate() {},
+    readNewLogData() {},
+    resumeTail() {},
+    startTail() {},
+    stopTail() {}
+};
 
 function getWorkspaceKey(folder) {
     return folder ? folder.uri.toString() : "";
@@ -192,6 +198,7 @@ function registerRunCurrentCommand() {
 function activate(context, options = {}) {
     extensionPath = context.extensionPath;
     ensureIcemanStartedForDebug = options.ensureIcemanStartedForDebug || ensureIcemanStartedForDebug;
+    logger = options.logger || logger;
 
     const startDisposable = vscode.debug.onDidStartDebugSession(() => {
         logger.resumeTail();

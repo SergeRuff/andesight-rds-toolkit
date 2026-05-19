@@ -5,6 +5,7 @@ const ICEman = require("#src/iceman");
 const memInspect = require("#src/mem_inspect");
 const disassembly = require("#src/disassembly");
 const gdbRunner = require("#src/gdb_runner");
+const logger = require("#src/logger");
 
 let templatesDir;
 
@@ -67,7 +68,8 @@ async function activate(context) {
     memInspect.activate(context);
     disassembly.activate(context);
     gdbRunner.activate(context, {
-        ensureIcemanStartedForDebug: ICEman.ensureStartedForDebug
+        ensureIcemanStartedForDebug: ICEman.ensureStartedForDebug,
+        logger
     });
 
     if (vscode.workspace.workspaceFolders) {
