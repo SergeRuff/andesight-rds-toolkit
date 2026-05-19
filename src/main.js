@@ -66,7 +66,9 @@ async function activate(context) {
     ICEman.activate(context, { getWorkspaceFolderForCommand });
     memInspect.activate(context);
     disassembly.activate(context);
-    gdbRunner.activate(context);
+    gdbRunner.activate(context, {
+        ensureIcemanStartedForDebug: ICEman.ensureStartedForDebug
+    });
 
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {

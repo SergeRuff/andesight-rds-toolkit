@@ -1,10 +1,10 @@
 const path = require("path");
 const vscode = require("vscode");
-const ICEman = require("#src/iceman");
 const logger = require("#src/logger");
 
 let extensionPath;
 let lastScriptPathByWorkspace = new Map();
+let ensureIcemanStartedForDebug = async () => true;
 
 function getWorkspaceKey(folder) {
     return folder ? folder.uri.toString() : "";
@@ -171,13 +171,9 @@ function registerRunCurrentCommand() {
         const logPath = path.join(folder.uri.fsPath, "gdb-session.log");
         logger.startTail(logPath);
 
-        const icemanConfig = ICEman.getIcemanConfiguration(folder, editor);
-        if (icemanConfig.enabled) {
-            const started = await ICEman.startIceman(folder, editor);
-
-            if (!started) {
-                return;
-            }
+        const icemanStarted = await ensureIcemanStartedForDebug(folder, editor);
+        if (!icemanStarted) {
+            return;
         }
 
         const config = getDebugConfiguration(folder, editor);
@@ -193,8 +189,9 @@ function registerRunCurrentCommand() {
     });
 }
 
-function activate(context) {
+function activate(context, options = {}) {
     extensionPath = context.extensionPath;
+    ensureIcemanStartedForDebug = options.ensureIcemanStartedForDebug || ensureIcemanStartedForDebug;
 
     const startDisposable = vscode.debug.onDidStartDebugSession(() => {
         logger.resumeTail();

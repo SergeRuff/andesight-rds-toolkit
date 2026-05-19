@@ -532,6 +532,16 @@ async function startIceman(folder, editor, showAlreadyRunningMessage = false) {
     return true;
 }
 
+async function ensureStartedForDebug(folder, editor) {
+    const icemanConfig = getIcemanConfiguration(folder, editor);
+
+    if (!icemanConfig.enabled) {
+        return true;
+    }
+
+    return startIceman(folder, editor);
+}
+
 function stopIceman(showMessage = true) {
     if (!icemanTerminal) {
         if (showMessage) {
@@ -818,6 +828,7 @@ function registerShowIcemanConfigActionsCommand() {
 module.exports = {
     activate,
     deactivate,
+    ensureStartedForDebug,
     getIcemanConfiguration,
     handleClosedTerminal,
     startIceman,
