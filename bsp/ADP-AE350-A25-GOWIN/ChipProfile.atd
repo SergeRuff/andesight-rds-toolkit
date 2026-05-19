@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.andestech.ide.editor:TargetDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:com.andestech.ide.editor="http:///ide.andestech.com/editor/atd.ecore" xmi:id="_qHa3oNABEeyGJ8b6dJaYBg" name="ADP-AE350-A25-GOWIN" chipId="ADP-AE350-A25-GOWIN" socRegistersFile="AE350-4GB.regs" memoryMapFile="AE350-4GB-memory.mem" preferredToolchain="nds32le-elf-mculib-v5" vepFile="ADP-AE350-A25.vep" vepIOMode="RAW" miscargsSid="" miscargsVep2Conf="-a v5" miscargsIceman="-Z v5" miscargsOtherSimulator="" miscargsOtherICE="">
+  <cpuList xmi:id="_qHa3odABEeyGJ8b6dJaYBg" type="A25" cpuRegistersFile="V5-32.crgs"/>
+  <flashDriver xmi:id="_qHa3otABEeyGJ8b6dJaYBg" driver="programmer" startAddress="" controllerAddress="" customUI="true" targetBurnBin=""/>
+</com.andestech.ide.editor:TargetDescription>
