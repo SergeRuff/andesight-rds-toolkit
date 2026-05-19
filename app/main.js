@@ -1,11 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 const vscode = require("vscode");
-const ICEman = require("#src/iceman");
-const memInspect = require("#src/mem_inspect");
-const disassembly = require("#src/disassembly");
-const gdbRunner = require("#src/gdb_runner");
-const logger = require("#src/logger");
+const ICEman = require("#app/iceman");
+const memInspect = require("#app/mem_inspect");
+const disassembly = require("#app/disassembly");
+const gdbRunner = require("#app/gdb_runner");
+const logger = require("#app/logger");
 
 let templatesDir;
 
