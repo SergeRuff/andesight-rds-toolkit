@@ -2,7 +2,7 @@
   "name": "andesight-rds-toolkit",
   "displayName": "AndeSight RDS Toolkit for VSCode",
   "description": "A Visual Studio Code extension for productive work with AndesTech toolchains.",
-  "icon": "media/logo.png",
+  "icon": "resources/logo.png",
   "version": "0.0.1",
   "publisher": "SergeRuff",
   "engines": {
