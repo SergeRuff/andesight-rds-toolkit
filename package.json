@@ -310,7 +310,7 @@
       {
         "id": "andesRds",
         "title": "AndeSight RDS",
-        "icon": "media/side_bar_icon.png"
+        "icon": "resources/side_bar_icon.png"
       }
     ]
   },
