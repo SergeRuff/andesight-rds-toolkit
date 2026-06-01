@@ -260,7 +260,8 @@
       {
         "command": "gdbScript.formatDtsDocument",
         "title": "Format Devicetree Source Document",
-        "category": "AndeSight RDS Toolkit for VSCode"
+        "category": "AndeSight RDS Toolkit for VSCode",
+        "icon": "$(check)"
       },
       {
         "command": "gdbScript.openDisassemblyViewRight",
