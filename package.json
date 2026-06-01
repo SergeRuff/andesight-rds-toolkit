@@ -46,7 +46,9 @@
     "trond-snekvik.gnu-mapfiles",
     "ZixuanWang.linkerscript",
     "dingzhaojie.bit-peek",
-    "pierre-payen.gdb-syntax"
+    "pierre-payen.gdb-syntax",
+    "plorefice.devicetree",
+    "legale.dts-formatter"
   ],
   "contributes": {
     "configuration": [
