@@ -25,6 +25,7 @@
     "onCommand:gdbScript.setIcemanGdbPortRange",
     "onCommand:gdbScript.setTargetPort",
     "onCommand:gdbScript.regenerateLaunchJson",
+    "onCommand:gdbScript.formatDtsDocument",
     "onCommand:gdbScript.openDisassemblyViewRight",
     "onCommand:gdbScript.showMemoryInspector",
     "onCommand:gdbScript.showSelectedVariableInMemoryInspector",
@@ -200,7 +201,10 @@
       ],
       "memory-inspector.columns.variables": true,
       "memory-inspector.columns.ascii": true,
-      "debug.disassemblyView.showSourceCode": true
+      "debug.disassemblyView.showSourceCode": true,
+      "[dts]": {
+        "editor.defaultFormatter": "legale.dts-formatter"
+      }
     },
     "commands": [
       {
@@ -254,6 +258,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "gdbScript.formatDtsDocument",
+        "title": "Format Devicetree Source Document",
+        "category": "AndeSight RDS Toolkit for VSCode"
+      },
+      {
         "command": "gdbScript.openDisassemblyViewRight",
         "title": "RDS: Show Disassembly View",
         "icon": "$(open-preview)"
@@ -300,6 +309,11 @@
         }
       ],
       "editor/title": [
+        {
+          "command": "gdbScript.formatDtsDocument",
+          "when": "resourceExtname == .dts",
+          "group": "navigation@1"
+        },
         {
           "command": "gdbScript.runCurrent",
           "when": "resourceExtname == .gdb",
