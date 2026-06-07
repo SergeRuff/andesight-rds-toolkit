@@ -104,7 +104,11 @@ async function activate(context) {
         await writeDefaultLaunchJson(context, folder);
     });
 
-    context.subscriptions.push(regenerateLaunchDisposable);
+    const formatDtsDisposable = vscode.commands.registerCommand("gdbScript.formatDtsDocument", async () => {
+        await vscode.commands.executeCommand("editor.action.formatDocument");
+    });
+
+    context.subscriptions.push(regenerateLaunchDisposable, formatDtsDisposable);
 }
 
 function deactivate() {
