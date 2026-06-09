@@ -6,6 +6,8 @@ const memInspect = require("#app/mem_inspect");
 const disassembly = require("#app/disassembly");
 const gdbRunner = require("#app/gdb_runner");
 const logger = require("#app/logger");
+const projectViewProvider = require("#app/projectview_provider");
+const toolsProvider = require("#app/tools_provider");
 
 let templatesDir;
 
@@ -64,6 +66,8 @@ async function writeDefaultLaunchJson(context, folder) {
 async function activate(context) {
     templatesDir = path.join(context.extensionPath, "templates");
 
+    console.log("RDS Toolkit: activating...");
+
     ICEman.activate(context, { getWorkspaceFolderForCommand });
     memInspect.activate(context);
     disassembly.activate(context);
@@ -71,6 +75,10 @@ async function activate(context) {
         ensureIcemanStartedForDebug: ICEman.ensureStartedForDebug,
         logger
     });
+    
+    console.log("RDS Toolkit: registering projectView and tools providers");
+    projectViewProvider.activate(context);
+    toolsProvider.activate(context);
 
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {

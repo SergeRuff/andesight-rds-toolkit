@@ -1,329 +1,355 @@
 {
-  "name": "andesight-rds-toolkit",
-  "displayName": "AndeSight RDS Toolkit for VSCode",
-  "description": "A Visual Studio Code extension for productive work with AndesTech toolchains.",
-  "icon": "resources/logo.png",
-  "version": "0.0.1",
-  "publisher": "SergeRuff",
-  "engines": {
-    "vscode": "^1.90.0"
-  },
-  "homepage": "https://github.com/SergeRuff",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SergeRuff/andesight-rds-toolkit"
-  },
-  "activationEvents": [
-    "onStartupFinished",
-    "onCommand:gdbScript.runCurrent",
-    "onCommand:gdbScript.startIceman",
-    "onCommand:gdbScript.stopIceman",
-    "onCommand:gdbScript.restartIceman",
-    "onCommand:gdbScript.selectIcemanTargetType",
-    "onCommand:gdbScript.setIcemanBurnerPort",
-    "onCommand:gdbScript.setIcemanTelnetPort",
-    "onCommand:gdbScript.setIcemanGdbPortRange",
-    "onCommand:gdbScript.setTargetPort",
-    "onCommand:gdbScript.regenerateLaunchJson",
-    "onCommand:gdbScript.formatDtsDocument",
-    "onCommand:gdbScript.openDisassemblyViewRight",
-    "onCommand:gdbScript.showMemoryInspector",
-    "onCommand:gdbScript.showSelectedVariableInMemoryInspector",
-    "onCommand:gdbScript.showSelectedPointerTargetInMemoryInspector"
-  ],
-  "main": "./app/main.js",
-  "extensionDependencies": [
-    "eclipse-cdt.cdt-gdb-vscode",
-    "eclipse-cdt.memory-inspector"
-  ],
-  "extensionPack": [
-    "ms-vscode.cpptools-extension-pack",
-    "eclipse-cdt.peripheral-inspector",
-    "ms-vscode.vscode-serial-monitor",
-    "sunshaoce.RISC-V",
-    "ms-vscode.hexeditor",
-    "ms-vscode.makefile-tools",
-    "RobDerr.gcc-map-view",
-    "trond-snekvik.gnu-mapfiles",
-    "ZixuanWang.linkerscript",
-    "dingzhaojie.bit-peek",
-    "pierre-payen.gdb-syntax",
-    "plorefice.devicetree",
-    "legale.dts-formatter"
-  ],
-  "contributes": {
-    "configuration": [
-      {
-        "title": "AndeSight RDS Toolkit for VSCode",
-        "properties": {
-          "gdbScriptRunner.program": {
-            "type": "string",
-            "default": "./spl/u-boot-spl",
-            "description": "Relative path to Program/ELF file used by AndeSight RDS Toolkit for VSCode.",
-            "order": 1
-          },
-          "gdbScriptRunner.debugger": {
-            "type": "string",
-            "default": "gdb-multiarch",
-            "description": "Path to debugger.",
-            "order": 2
-          },
-          "gdbScriptRunner.target.type": {
-            "type": "string",
-            "default": "remote",
-            "enum": [
-              "remote",
-              "extended-remote"
-            ],
-            "description": "GDB target connection type used by the CDT GDB target adapter.",
-            "order": 3
-          },
-          "gdbScriptRunner.target.host": {
-            "type": "string",
-            "default": "localhost",
-            "description": "GDB target host used by the CDT GDB target adapter.",
-            "order": 4
-          },
-          "gdbScriptRunner.target.port": {
-            "type": "number",
-            "default": 9902,
-            "minimum": 1,
-            "maximum": 65535,
-            "description": "GDB target port used by the CDT GDB target adapter.",
-            "order": 5
-          },
-          "gdbScriptRunner.svd.path": {
-            "type": "string",
-            "default": "${extensionPath}/bsp/ADP-AE350-A25-GOWIN/AE350-4GB.svd",
-            "description": "Path to the SVD file used by CDT Peripheral Inspector.",
-            "order": 6
-          }
-        }
-      },
-      {
-        "title": "Andes ICEman",
-        "properties": {
-          "andesIceman.enabled": {
-            "type": "boolean",
-            "default": true,
-            "description": "Start Andes ICEman automatically before running the current GDB script.",
-            "order": 1
-          },
-          "andesIceman.andesRoot": {
-            "type": "string",
-            "default": "C:\\Andestech\\AndeSight_RDS_v511",
-            "description": "Root directory of the Andes installation.",
-            "order": 2
-          },
-          "andesIceman.executable": {
-            "type": "string",
-            "default": "${config:andesIceman.andesRoot}\\ice\\ICEman.exe",
-            "description": "Path to the Andes ICEman executable.",
-            "order": 3
-          },
-          "andesIceman.cwd": {
-            "type": "string",
-            "default": "${config:andesIceman.andesRoot}\\ice",
-            "description": "Working directory used to start Andes ICEman.",
-            "order": 4
-          },
-          "andesIceman.burnerPort": {
-            "type": "number",
-            "default": 9900,
-            "minimum": 1,
-            "maximum": 65535,
-            "description": "Burner port passed to Andes ICEman as --bport.",
-            "order": 5
-          },
-          "andesIceman.telnetPort": {
-            "type": "number",
-            "default": 9901,
-            "minimum": 1,
-            "maximum": 65535,
-            "description": "Telnet port passed to Andes ICEman as --tport.",
-            "order": 6
-          },
-          "andesIceman.gdbPortRange": {
-            "type": "string",
-            "default": "9902:49151",
-            "description": "GDB port range passed to Andes ICEman as --port.",
-            "order": 7
-          },
-          "andesIceman.targetType": {
-            "type": "string",
-            "default": "v5",
-            "enum": [
-              "v2",
-              "v3",
-              "v3m",
-              "v5"
-            ],
-            "description": "Target type passed to Andes ICEman as -Z.",
-            "order": 8
-          },
-          "andesIceman.args": {
-            "type": "array",
-            "default": [
-              "--device-usb-combo",
-              "002:008:006",
-              "-I",
-              "gwusb_ftdi_single.cfg"
-            ],
-            "items": {
-              "type": "string"
-            },
-            "description": "Additional arguments passed to Andes ICEman after the configured port arguments.",
-            "order": 9
-          },
-          "andesIceman.useAndesEnvironment": {
-            "type": "boolean",
-            "default": true,
-            "description": "Start Andes ICEman in a VS Code terminal using the Cygwin bash environment from the Andes IDE launcher.",
-            "order": 10
-          },
-          "andesIceman.startupDelayMs": {
-            "type": "number",
-            "default": 3000,
-            "minimum": 1000,
-            "description": "Maximum time to wait for the Andes ICEman GDB target port to become available before starting GDB.",
-            "order": 11
-          }
-        }
-      }
-    ],
-    "configurationDefaults": {
-      "peripheral-inspector.definitionPathConfig": "definitionPath",
-      "memory-inspector.debugTypes": [
-        "gdb",
-        "gdbtarget",
-        "embedded-debug",
-        "arm-debugger"
-      ],
-      "memory-inspector.columns.variables": true,
-      "memory-inspector.columns.ascii": true,
-      "debug.disassemblyView.showSourceCode": true,
-      "[dts]": {
-        "editor.defaultFormatter": "legale.dts-formatter"
-      }
+    "name": "andesight-rds-toolkit",
+    "displayName": "AndeSight RDS Toolkit for VSCode",
+    "description": "A Visual Studio Code extension for productive work with AndesTech toolchains.",
+    "icon": "resources/logo.png",
+    "version": "0.0.1",
+    "publisher": "SergeRuff",
+    "engines": {
+        "vscode": "^1.90.0"
     },
-    "commands": [
-      {
-        "command": "gdbScript.runCurrent",
-        "title": "RDS: Run GDB Script (F5)",
-        "icon": "$(debug-start)"
-      },
-      {
-        "command": "gdbScript.startIceman",
-        "title": "RDS: Start Andes ICEman",
-        "icon": "$(debug-start)"
-      },
-      {
-        "command": "gdbScript.stopIceman",
-        "title": "RDS: Stop Andes ICEman",
-        "icon": "$(debug-stop)"
-      },
-      {
-        "command": "gdbScript.restartIceman",
-        "title": "RDS: Restart Andes ICEman",
-        "icon": "$(debug-restart)"
-      },
-      {
-        "command": "gdbScript.selectIcemanTargetType",
-        "title": "RDS: Select Andes ICEman Target Type",
-        "icon": "$(list-selection)"
-      },
-      {
-        "command": "gdbScript.setIcemanBurnerPort",
-        "title": "RDS: Set Andes ICEman Burner Port",
-        "icon": "$(symbol-number)"
-      },
-      {
-        "command": "gdbScript.setIcemanTelnetPort",
-        "title": "RDS: Set Andes ICEman Telnet Port",
-        "icon": "$(symbol-number)"
-      },
-      {
-        "command": "gdbScript.setIcemanGdbPortRange",
-        "title": "RDS: Set Andes ICEman GDB Port Range",
-        "icon": "$(symbol-number)"
-      },
-      {
-        "command": "gdbScript.setTargetPort",
-        "title": "RDS: Set GDB Target Port",
-        "icon": "$(symbol-number)"
-      },
-      {
-        "command": "gdbScript.regenerateLaunchJson",
-        "title": "RDS: Regenerate launch.json via default template",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "gdbScript.formatDtsDocument",
-        "title": "Format Devicetree Source Document",
-        "category": "AndeSight RDS Toolkit for VSCode",
-        "icon": "$(check)"
-      },
-      {
-        "command": "gdbScript.openDisassemblyViewRight",
-        "title": "RDS: Show Disassembly View",
-        "icon": "$(open-preview)"
-      },
-      {
-        "command": "gdbScript.showMemoryInspector",
-        "title": "RDS: Show Memory Inspector",
-        "icon": "$(database)"
-      },
-      {
-        "command": "gdbScript.showSelectedVariableInMemoryInspector",
-        "title": "Show Variable in Memory Inspector",
-        "category": "AndeSight RDS Toolkit for VSCode"
-      },
-      {
-        "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
-        "title": "Show Pointer Target in Memory Inspector",
-        "category": "AndeSight RDS Toolkit for VSCode"
-      }
+    "homepage": "https://github.com/SergeRuff",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SergeRuff/andesight-rds-toolkit"
+    },
+    "activationEvents": [
+        "onStartupFinished",
+        "onView:andesRds.projectView",
+        "onView:andesRds.tools",
+        "onCommand:gdbScript.runCurrent",
+        "onCommand:gdbScript.startIceman",
+        "onCommand:gdbScript.stopIceman",
+        "onCommand:gdbScript.restartIceman",
+        "onCommand:gdbScript.selectIcemanTargetType",
+        "onCommand:gdbScript.setIcemanBurnerPort",
+        "onCommand:gdbScript.setIcemanTelnetPort",
+        "onCommand:gdbScript.setIcemanGdbPortRange",
+        "onCommand:gdbScript.setTargetPort",
+        "onCommand:gdbScript.regenerateLaunchJson",
+        "onCommand:gdbScript.formatDtsDocument",
+        "onCommand:gdbScript.openDisassemblyViewRight",
+        "onCommand:gdbScript.showMemoryInspector",
+        "onCommand:gdbScript.showSelectedVariableInMemoryInspector",
+        "onCommand:gdbScript.showSelectedPointerTargetInMemoryInspector"
     ],
-    "menus": {
-      "debug/toolBar": [
-        {
-          "command": "gdbScript.showMemoryInspector",
-          "when": "inDebugMode",
-          "group": "navigation@10"
+    "main": "./app/main.js",
+    "extensionDependencies": [
+        "eclipse-cdt.cdt-gdb-vscode",
+        "eclipse-cdt.memory-inspector"
+    ],
+    "extensionPack": [
+        "ms-vscode.cpptools-extension-pack",
+        "eclipse-cdt.peripheral-inspector",
+        "ms-vscode.vscode-serial-monitor",
+        "sunshaoce.RISC-V",
+        "ms-vscode.hexeditor",
+        "ms-vscode.makefile-tools",
+        "RobDerr.gcc-map-view",
+        "trond-snekvik.gnu-mapfiles",
+        "ZixuanWang.linkerscript",
+        "dingzhaojie.bit-peek",
+        "pierre-payen.gdb-syntax",
+        "plorefice.devicetree",
+        "legale.dts-formatter"
+    ],
+    "contributes": {
+        "configuration": [
+            {
+                "title": "AndeSight RDS Toolkit for VSCode",
+                "properties": {
+                    "gdbScriptRunner.program": {
+                        "type": "string",
+                        "default": "./spl/u-boot-spl",
+                        "description": "Relative path to Program/ELF file used by AndeSight RDS Toolkit for VSCode.",
+                        "order": 1
+                    },
+                    "gdbScriptRunner.debugger": {
+                        "type": "string",
+                        "default": "gdb-multiarch",
+                        "description": "Path to debugger.",
+                        "order": 2
+                    },
+                    "gdbScriptRunner.target.type": {
+                        "type": "string",
+                        "default": "remote",
+                        "enum": [
+                            "remote",
+                            "extended-remote"
+                        ],
+                        "description": "GDB target connection type used by the CDT GDB target adapter.",
+                        "order": 3
+                    },
+                    "gdbScriptRunner.target.host": {
+                        "type": "string",
+                        "default": "localhost",
+                        "description": "GDB target host used by the CDT GDB target adapter.",
+                        "order": 4
+                    },
+                    "gdbScriptRunner.target.port": {
+                        "type": "number",
+                        "default": 9902,
+                        "minimum": 1,
+                        "maximum": 65535,
+                        "description": "GDB target port used by the CDT GDB target adapter.",
+                        "order": 5
+                    },
+                    "gdbScriptRunner.svd.path": {
+                        "type": "string",
+                        "default": "${extensionPath}/bsp/ADP-AE350-A25-GOWIN/AE350-4GB.svd",
+                        "description": "Path to the SVD file used by CDT Peripheral Inspector.",
+                        "order": 6
+                    }
+                }
+            },
+            {
+                "title": "Andes ICEman",
+                "properties": {
+                    "andesIceman.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Start Andes ICEman automatically before running the current GDB script.",
+                        "order": 1
+                    },
+                    "andesIceman.andesRoot": {
+                        "type": "string",
+                        "default": "C:\\Andestech\\AndeSight_RDS_v511",
+                        "description": "Root directory of the Andes installation.",
+                        "order": 2
+                    },
+                    "andesIceman.executable": {
+                        "type": "string",
+                        "default": "${config:andesIceman.andesRoot}\\ice\\ICEman.exe",
+                        "description": "Path to the Andes ICEman executable.",
+                        "order": 3
+                    },
+                    "andesIceman.cwd": {
+                        "type": "string",
+                        "default": "${config:andesIceman.andesRoot}\\ice",
+                        "description": "Working directory used to start Andes ICEman.",
+                        "order": 4
+                    },
+                    "andesIceman.burnerPort": {
+                        "type": "number",
+                        "default": 9900,
+                        "minimum": 1,
+                        "maximum": 65535,
+                        "description": "Burner port passed to Andes ICEman as --bport.",
+                        "order": 5
+                    },
+                    "andesIceman.telnetPort": {
+                        "type": "number",
+                        "default": 9901,
+                        "minimum": 1,
+                        "maximum": 65535,
+                        "description": "Telnet port passed to Andes ICEman as --tport.",
+                        "order": 6
+                    },
+                    "andesIceman.gdbPortRange": {
+                        "type": "string",
+                        "default": "9902:49151",
+                        "description": "GDB port range passed to Andes ICEman as --port.",
+                        "order": 7
+                    },
+                    "andesIceman.targetType": {
+                        "type": "string",
+                        "default": "v5",
+                        "enum": [
+                            "v2",
+                            "v3",
+                            "v3m",
+                            "v5"
+                        ],
+                        "description": "Target type passed to Andes ICEman as -Z.",
+                        "order": 8
+                    },
+                    "andesIceman.args": {
+                        "type": "array",
+                        "default": [
+                            "--device-usb-combo",
+                            "002:008:006",
+                            "-I",
+                            "gwusb_ftdi_single.cfg"
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Additional arguments passed to Andes ICEman after the configured port arguments.",
+                        "order": 9
+                    },
+                    "andesIceman.useAndesEnvironment": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Start Andes ICEman in a VS Code terminal using the Cygwin bash environment from the Andes IDE launcher.",
+                        "order": 10
+                    },
+                    "andesIceman.startupDelayMs": {
+                        "type": "number",
+                        "default": 3000,
+                        "minimum": 1000,
+                        "description": "Maximum time to wait for the Andes ICEman GDB target port to become available before starting GDB.",
+                        "order": 11
+                    }
+                }
+            }
+        ],
+        "configurationDefaults": {
+            "peripheral-inspector.definitionPathConfig": "definitionPath",
+            "memory-inspector.debugTypes": [
+                "gdb",
+                "gdbtarget",
+                "embedded-debug",
+                "arm-debugger"
+            ],
+            "memory-inspector.columns.variables": true,
+            "memory-inspector.columns.ascii": true,
+            "debug.disassemblyView.showSourceCode": true,
+            "[dts]": {
+                "editor.defaultFormatter": "legale.dts-formatter"
+            }
         },
-        {
-          "command": "gdbScript.openDisassemblyViewRight",
-          "when": "inDebugMode",
-          "group": "navigation@10"
-        }
-      ],
-      "editor/context": [
-        {
-          "command": "gdbScript.showSelectedVariableInMemoryInspector",
-          "when": "inDebugMode && editorTextFocus",
-          "group": "debug@20"
+        "commands": [
+            {
+                "command": "gdbScript.runCurrent",
+                "title": "RDS: Run GDB Script (F5)",
+                "icon": "$(debug-start)"
+            },
+            {
+                "command": "gdbScript.startIceman",
+                "title": "RDS: Start Andes ICEman",
+                "icon": "$(debug-start)"
+            },
+            {
+                "command": "gdbScript.stopIceman",
+                "title": "RDS: Stop Andes ICEman",
+                "icon": "$(debug-stop)"
+            },
+            {
+                "command": "gdbScript.restartIceman",
+                "title": "RDS: Restart Andes ICEman",
+                "icon": "$(debug-restart)"
+            },
+            {
+                "command": "gdbScript.selectIcemanTargetType",
+                "title": "RDS: Select Andes ICEman Target Type",
+                "icon": "$(list-selection)"
+            },
+            {
+                "command": "gdbScript.setIcemanBurnerPort",
+                "title": "RDS: Set Andes ICEman Burner Port",
+                "icon": "$(symbol-number)"
+            },
+            {
+                "command": "gdbScript.setIcemanTelnetPort",
+                "title": "RDS: Set Andes ICEman Telnet Port",
+                "icon": "$(symbol-number)"
+            },
+            {
+                "command": "gdbScript.setIcemanGdbPortRange",
+                "title": "RDS: Set Andes ICEman GDB Port Range",
+                "icon": "$(symbol-number)"
+            },
+            {
+                "command": "gdbScript.setTargetPort",
+                "title": "RDS: Set GDB Target Port",
+                "icon": "$(symbol-number)"
+            },
+            {
+                "command": "gdbScript.regenerateLaunchJson",
+                "title": "RDS: Regenerate launch.json via default template",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "gdbScript.formatDtsDocument",
+                "title": "Format Devicetree Source Document",
+                "category": "AndeSight RDS Toolkit for VSCode",
+                "icon": "$(check)"
+            },
+            {
+                "command": "gdbScript.openDisassemblyViewRight",
+                "title": "RDS: Show Disassembly View",
+                "icon": "$(open-preview)"
+            },
+            {
+                "command": "gdbScript.showMemoryInspector",
+                "title": "RDS: Show Memory Inspector",
+                "icon": "$(database)"
+            },
+            {
+                "command": "gdbScript.showSelectedVariableInMemoryInspector",
+                "title": "Show Variable in Memory Inspector",
+                "category": "AndeSight RDS Toolkit for VSCode"
+            },
+            {
+                "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
+                "title": "Show Pointer Target in Memory Inspector",
+                "category": "AndeSight RDS Toolkit for VSCode"
+            }
+        ],
+        "menus": {
+            "debug/toolBar": [
+                {
+                    "command": "gdbScript.showMemoryInspector",
+                    "when": "inDebugMode",
+                    "group": "navigation@10"
+                },
+                {
+                    "command": "gdbScript.openDisassemblyViewRight",
+                    "when": "inDebugMode",
+                    "group": "navigation@10"
+                }
+            ],
+            "editor/context": [
+                {
+                    "command": "gdbScript.showSelectedVariableInMemoryInspector",
+                    "when": "inDebugMode && editorTextFocus",
+                    "group": "debug@20"
+                },
+                {
+                    "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
+                    "when": "inDebugMode && editorTextFocus",
+                    "group": "debug@21"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "gdbScript.formatDtsDocument",
+                    "when": "resourceExtname == .dts",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "gdbScript.runCurrent",
+                    "when": "resourceExtname == .gdb",
+                    "group": "navigation"
+                }
+            ]
         },
-        {
-          "command": "gdbScript.showSelectedPointerTargetInMemoryInspector",
-          "when": "inDebugMode && editorTextFocus",
-          "group": "debug@21"
-        }
-      ],
-      "editor/title": [
-        {
-          "command": "gdbScript.formatDtsDocument",
-          "when": "resourceExtname == .dts",
-          "group": "navigation@1"
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "andesRds",
+                    "title": "AndeSight RDS",
+                    "icon": "resources/side_bar_icon.png"
+                }
+            ]
         },
-        {
-          "command": "gdbScript.runCurrent",
-          "when": "resourceExtname == .gdb",
-          "group": "navigation"
+        "views": {
+            "andesRds": [
+                {
+                    "type": "webview",
+                    "id": "andesRds.projectView",
+                    "name": "Project View",
+                    "icon": "explorer-view-icon"
+                },
+                {
+                    "id": "andesRds.tools",
+                    "name": "Tools",
+                    "icon": "tools"
+                }
+            ]
         }
-      ]
+    },
+    "imports": {
+        "#app/*": "./app/*.js"
     }
-  },
-  "imports": {
-    "#app/*": "./app/*.js"
-  }
 }
