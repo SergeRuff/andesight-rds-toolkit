@@ -7,7 +7,8 @@ class ProjectView_Provider {
       <html>
         <body>
           <h1>AndeSight RDS</h1>
-          <p>Данные тут...</p>
+          <p>Projects are supposed to be displayed here...</p>
+          <p>Now there is no content to display.</p>
         </body>
       </html>
     `;
@@ -15,9 +16,10 @@ class ProjectView_Provider {
 }
 
 function activate(context) {
+  console.log("RDS Toolkit: registerWebviewViewProvider andesRds.projectView");
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      "andesRds.projectview",
+      "andesRds.projectView",
       new ProjectView_Provider()
     )
   );
