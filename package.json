@@ -334,8 +334,14 @@
         "views": {
             "andesRds": [
                 {
+                    "id": "andesRds.projectview",
+                    "name": "Project View",
+                    "icon": "explorer-view-icon"
+                },
+                {
                     "id": "andesRds.tools",
-                    "name": "Tools"
+                    "name": "Tools",
+                    "icon": "tools"
                 }
             ]
         }
