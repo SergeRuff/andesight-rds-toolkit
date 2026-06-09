@@ -66,6 +66,8 @@ async function writeDefaultLaunchJson(context, folder) {
 async function activate(context) {
     templatesDir = path.join(context.extensionPath, "templates");
 
+    console.log("RDS Toolkit: activating...");
+
     ICEman.activate(context, { getWorkspaceFolderForCommand });
     memInspect.activate(context);
     disassembly.activate(context);
@@ -73,6 +75,8 @@ async function activate(context) {
         ensureIcemanStartedForDebug: ICEman.ensureStartedForDebug,
         logger
     });
+    
+    console.log("RDS Toolkit: registering projectView and tools providers");
     projectViewProvider.activate(context);
     toolsProvider.activate(context);
 
