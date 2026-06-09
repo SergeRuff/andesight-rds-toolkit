@@ -6,6 +6,8 @@ const memInspect = require("#app/mem_inspect");
 const disassembly = require("#app/disassembly");
 const gdbRunner = require("#app/gdb_runner");
 const logger = require("#app/logger");
+const projectViewProvider = require("#app/projectview_provider");
+const toolsProvider = require("#app/tools_provider");
 
 let templatesDir;
 
@@ -71,6 +73,8 @@ async function activate(context) {
         ensureIcemanStartedForDebug: ICEman.ensureStartedForDebug,
         logger
     });
+    projectViewProvider.activate(context);
+    toolsProvider.activate(context);
 
     if (vscode.workspace.workspaceFolders) {
         for (const folder of vscode.workspace.workspaceFolders) {
